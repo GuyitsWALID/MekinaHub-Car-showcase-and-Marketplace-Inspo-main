@@ -12,24 +12,44 @@ import {
   Menu,
   X,
   ChevronRight,
-  Moon,
-  Sun,
   Star,
 } from 'lucide-react';
 import { useThemeStore } from '../store/theme';
 import MouseFollower from '../components/MouseFollower';
 import heroBg from '../assets/Herobg.jpg';
+import 'car-makes-icons/dist/style.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Landing() {
-  const { isDarkMode, toggleTheme } = useThemeStore();
+  const { isDarkMode } = useThemeStore(); // Removing toggle as we force dark mode
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
+
+  // Define brand icons array using CSS classes from car-makes-icons
+  const brandIcons = [
+    { name: 'Acura', className: 'car-acura' },
+    { name: 'Alfa Romeo', className: 'car-alfa-romeo' },
+    { name: 'Alfa Romeo Alt', className: 'car-alfa-romeo-alt' },
+    { name: 'AM General', className: 'car-am-general' },
+    { name: 'Toyota', className: 'car-toyota' },
+    { name: 'Aston Martin Alt', className: 'car-aston-martin-alt' },
+    { name: 'Audi', className: 'car-audi' },
+    { name: 'Bentley', className: 'car-bentley' },
+    { name: 'BMW', className: 'car-bmw' },
+    { name: 'Cadillac', className: 'car-cadillac' },
+    { name: 'Chevrolet', className: 'car-chevrolet' },
+    { name: 'Citroen', className: 'car-citroen' },
+    { name: 'Mercedes-Benz', className: 'car-mercedes-benz' },
+    { name: 'Mitsubishi', className: 'car-mitsubishi' },
+    { name: 'Peugeot', className: 'car-peugeot' },
+   
+  ];
 
   // Data arrays
   const features = [
@@ -113,12 +133,12 @@ export default function Landing() {
     },
   ];
 
-  // Toggle dark mode on the document root
+  // Force dark mode
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, [isDarkMode]);
+    document.documentElement.classList.add('dark');
+  }, []);
 
-  // GSAP animations
+  // GSAP Animations
   useEffect(() => {
     // HERO Animation (unchanged)
     const heroTimeline = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.5 });
@@ -135,6 +155,21 @@ export default function Landing() {
           { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 },
           '-=0.4'
         );
+    }
+
+    // Horizontal scroll for Brand Logos section
+    if (brandRef.current) {
+      const brandInner = brandRef.current.querySelector('.brand-inner');
+      gsap.to(brandInner, {
+        x: '-40%',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: brandRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1,
+        },
+      });
     }
 
     // Helper: Animate section items using fromTo (like hero)
@@ -167,7 +202,6 @@ export default function Landing() {
       }
     };
 
-    // Animate Features, Pricing, Reviews similar to hero animation
     animateSection(featuresRef, '.feature-card', 0.4, 50, 0.1);
     animateSection(pricingRef, '.pricing-card', 0.4, 50, 0.1);
     animateSection(reviewsRef, '.review-card', 0.45, 50, 0.1);
@@ -176,80 +210,54 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <MouseFollower />
 
       {/* Navigation */}
-      <nav className="fixed w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl z-50 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <Link to="/" className="text-2xl font-bold text-gray-600 flex items-center">
-              MekinaHub
+      <nav className="fixed w-full bg-black/80 backdrop-blur-2xl z-50 border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+          <Link to="/" className="text-2xl font-bold">
+            MekinaHub
+          </Link>
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/showroom" className="hover:text-gray-300">
+              Showroom
             </Link>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link
-                to="/showroom"
-                className="text-gray-600 dark:text-gray-300 hover:text-primary-600"
-              >
-                Showroom
-              </Link>
-              <Link
-                to="/marketplace"
-                className="text-gray-600 dark:text-gray-300 hover:text-primary-600"
-              >
-                Marketplace
-              </Link>
-              <Link
-                to="/compare"
-                className="text-gray-600 dark:text-gray-300 hover:text-primary-600"
-              >
-                Compare
-              </Link>
-              <button onClick={toggleTheme} className="p-2 rounded-lg bg-gray-300 dark:bg-gray-700">
-                {isDarkMode ? <Sun className="w-5 h-5 text-primary-400" /> : <Moon className="w-5 h-5" />}
-              </button>
-              <Link
-                to="/login"
-                className="px-4 py-2 rounded-lg text-white hover:bg-gray-300"
-              >
-                Sign In
-              </Link>
-            </div>
-            <div className="md:hidden flex items-center">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-300"
-              >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            </div>
+            <Link to="/marketplace" className="hover:text-gray-300">
+              Marketplace
+            </Link>
+            <Link to="/compare" className="hover:text-gray-300">
+              Compare
+            </Link>
+            <Link
+              to="/login"
+              className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+            >
+              Sign In
+            </Link>
+          </div>
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
         {isMenuOpen && (
-          <div className="md:hidden">
+          <div className="md:hidden border-t border-gray-800 bg-black">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link
-                to="/showroom"
-                className="block px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
+              <Link to="/showroom" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
                 Showroom
               </Link>
-              <Link
-                to="/marketplace"
-                className="block px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
+              <Link to="/marketplace" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
                 Marketplace
               </Link>
-              <Link
-                to="/compare"
-                className="block px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
+              <Link to="/compare" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
                 Compare
               </Link>
-              <Link
-                to="/login"
-                className="block px-3 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-              >
+              <Link to="/login" className="block px-3 py-2 mt-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700">
                 Sign In
               </Link>
             </div>
@@ -260,74 +268,80 @@ export default function Landing() {
       <section
         ref={heroRef}
         className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${heroBg})`
-        }}
+        style={{ backgroundImage: `url(${heroBg})` }}
       >
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative max-w-7xl mx-auto flex flex-col md:flex-row items-center">
-          <div className="md:w-1/2 text-center md:text-left z-10">
-            <h1 className="text-4xl sm:text-6xl font-bold text-gray-100 mb-6">
-              The Future of Car Shopping is <span className="text-primary-400">Here</span>
-            </h1>
-            <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto md:mx-0">
-              Experience cars like never before with our immersive 3D showroom, smart comparison tools, and trusted marketplace.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
-              <Link
-                to="/showroom"
-                className="px-8 py-4 rounded-lg bg-primary-600 text-white hover:bg-primary-700 flex items-center justify-center"
-              >
-                Explore Showroom <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-              <Link
-                to="/marketplace"
-                className="px-8 py-4 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center"
-              >
-                Visit Marketplace <ChevronRight className="w-5 h-5 ml-2" />
-              </Link>
-            </div>
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="relative max-w-7xl mx-auto flex flex-col items-center">
+          <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6">
+            Premium Car Rental in <span className="text-primary-400">Your City</span>
+          </h1>
+          <p className="text-xl text-gray-200 mb-8 max-w-2xl">
+            Don’t deny yourself the pleasure of driving the best premium cars from around the world—here and now.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              to="/showroom"
+              className="px-8 py-4 rounded-lg bg-primary-600 text-white hover:bg-primary-700 flex items-center justify-center"
+            >
+              Book Now <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Brand Logos Section */}
+      <section className="py-12 bg-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-6">
+          <h2 className="text-xl font-semibold">Our Trusted Brands</h2>
+          <p className="text-gray-400">
+            Driving excellence from the best manufacturers around the globe.
+          </p>
+        </div>
+        <div ref={brandRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+          <div className="brand-inner flex gap-8">
+            {brandIcons.map((brand, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <i className={`${brand.className} w-28 h-28 text-gray-300`}></i>
+                <p className="mt-2 text-sm text-gray-300">{brand.name}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section ref={featuresRef} className="relative py-20 bg-gray-50 dark:bg-gray-800">
+      <section ref={featuresRef} className="py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Revolutionary Features</h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Everything you need to make informed decisions
-          </p>
+          <h2 className="text-3xl font-bold text-white mb-4">Revolutionary Features</h2>
+          <p className="text-gray-400">Everything you need to make informed decisions</p>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4 sm:px-6 lg:px-8">
           {features.map((f) => (
             <div
               key={f.title}
-              className="feature-card bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-2xl"
+              className="feature-card bg-black border border-gray-800 p-6 rounded-xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-2xl"
             >
-              <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center mb-4">
-                <f.icon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              <div className="w-12 h-12 bg-primary-600/20 rounded-lg flex items-center justify-center mb-4">
+                <f.icon className="w-6 h-6 text-primary-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{f.title}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{f.description}</p>
+              <h3 className="text-xl font-semibold text-white mb-2">{f.title}</h3>
+              <p className="text-gray-400">{f.description}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section ref={pricingRef} className="relative py-20">
+      <section ref={pricingRef} className="py-20 bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Dealer Plans</h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Choose the perfect plan for your dealership
-          </p>
+          <h2 className="text-3xl font-bold text-white mb-4">Dealer Plans</h2>
+          <p className="text-gray-400">Choose the perfect plan for your dealership</p>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4 sm:px-6 lg:px-8">
           {pricingPlans.map((p) => (
             <div
               key={p.name}
-              className={`pricing-card bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl ${
+              className={`pricing-card bg-black border border-gray-800 rounded-xl shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl ${
                 p.popular ? 'ring-2 ring-primary-600' : ''
               }`}
             >
@@ -335,17 +349,17 @@ export default function Landing() {
                 <div className="bg-primary-600 text-white text-center py-1">Most Popular</div>
               )}
               <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">{p.name}</h3>
+                <h3 className="text-xl font-semibold text-white mb-4">{p.name}</h3>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">${p.price}</span>
+                  <span className="text-4xl font-bold text-white">${p.price}</span>
                   {p.price !== 'Custom' && (
-                    <span className="text-gray-600 dark:text-gray-300">/month</span>
+                    <span className="text-gray-400">/month</span>
                   )}
                 </div>
-                <ul className="space-y-4 mb-6">
+                <ul className="space-y-4 mb-6 text-gray-300">
                   {p.features.map((feat) => (
-                    <li key={feat} className="flex items-center text-gray-600 dark:text-gray-300">
-                      <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" /> {feat}
+                    <li key={feat} className="flex items-center">
+                      <CheckCircle2 className="w-5 h-5 text-green-400 mr-2" /> {feat}
                     </li>
                   ))}
                 </ul>
@@ -359,108 +373,102 @@ export default function Landing() {
       </section>
 
       {/* Reviews Section */}
-      <section ref={reviewsRef} className="relative py-20 bg-gray-100 dark:bg-gray-800">
+      <section ref={reviewsRef} className="py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Reviews</h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            What our customers are saying
-          </p>
+          <h2 className="text-3xl font-bold text-white mb-4">Reviews</h2>
+          <p className="text-gray-400">What our customers are saying</p>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4 sm:px-6 lg:px-8">
           {reviews.map((r, i) => (
             <div
               key={i}
-              className="review-card bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-2xl"
+              className="review-card bg-black border border-gray-800 p-6 rounded-xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-2xl"
             >
-              <p className="text-gray-600 dark:text-gray-300 italic mb-4">
-                “{r.quote}”
-              </p>
+              <p className="text-gray-300 italic mb-4">“{r.quote}”</p>
               <div className="flex items-center">
                 {[...Array(r.rating)].map((_, idx) => (
                   <Star key={idx} className="w-5 h-5 text-yellow-400" />
                 ))}
               </div>
-              <p className="mt-4 text-gray-900 dark:text-white font-semibold">
-                - {r.author}
-              </p>
+              <p className="mt-4 text-white font-semibold">- {r.author}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative bg-gray-900 text-white py-12">
+      <footer className="bg-black text-gray-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-2xl font-bold text-primary-600 mb-4">MekinaHub</h3>
-              <p className="text-gray-400">
+              <p>
                 Revolutionizing the automotive marketplace with cutting-edge technology.
               </p>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Features</h4>
-              <ul className="space-y-2">
+              <h4 className="text-lg font-semibold mb-4 text-white">Features</h4>
+              <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link to="/showroom" className="text-gray-400 hover:text-white">
+                  <Link to="/showroom" className="hover:text-white">
                     3D Showroom
                   </Link>
                 </li>
                 <li>
-                  <Link to="/compare" className="text-gray-400 hover:text-white">
+                  <Link to="/compare" className="hover:text-white">
                     Car Comparison
                   </Link>
                 </li>
                 <li>
-                  <Link to="/marketplace" className="text-gray-400 hover:text-white">
+                  <Link to="/marketplace" className="hover:text-white">
                     Marketplace
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Company</h4>
-              <ul className="space-y-2">
+              <h4 className="text-lg font-semibold mb-4 text-white">Company</h4>
+              <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white">
                     Careers
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white">
                     Contact
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2">
+              <h4 className="text-lg font-semibold mb-4 text-white">Legal</h4>
+              <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white">
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white">
                     Terms of Service
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white">
                     Cookie Policy
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 MekinaHub. All rights reserved.</p>
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+            <p className="text-gray-500">&copy; 2024 MekinaHub. All rights reserved.</p>
           </div>
         </div>
       </footer>
