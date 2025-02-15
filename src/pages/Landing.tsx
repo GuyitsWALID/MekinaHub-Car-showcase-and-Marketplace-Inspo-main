@@ -33,21 +33,30 @@ export default function Landing() {
 
   // Define brand icons array using CSS classes from car-makes-icons
   const brandIcons = [
-    { name: 'Acura', className: 'car-acura' },
-    { name: 'Alfa Romeo', className: 'car-alfa-romeo' },
-    { name: 'Alfa Romeo Alt', className: 'car-alfa-romeo-alt' },
-    { name: 'AM General', className: 'car-am-general' },
-    { name: 'Toyota', className: 'car-toyota' },
-    { name: 'Aston Martin Alt', className: 'car-aston-martin-alt' },
-    { name: 'Audi', className: 'car-audi' },
-    { name: 'Bentley', className: 'car-bentley' },
-    { name: 'BMW', className: 'car-bmw' },
-    { name: 'Cadillac', className: 'car-cadillac' },
-    { name: 'Chevrolet', className: 'car-chevrolet' },
-    { name: 'Citroen', className: 'car-citroen' },
-    { name: 'Mercedes-Benz', className: 'car-mercedes-benz' },
-    { name: 'Mitsubishi', className: 'car-mitsubishi' },
-    { name: 'Peugeot', className: 'car-peugeot' },
+    {  className: 'car-acura' },
+    {  className: 'car-alfa-romeo' },
+    {  className: 'car-dodge' },
+    {  className: 'car-ferrari' },
+    {  className: 'car-fiat' },
+    {  className: 'car-ford' },
+    { className: 'car-jeep-alt' },
+    {  className: 'car-land-rover' },
+    {  className: 'car-bmw' },
+    {  className: 'car-lexus' },
+    {  className: 'car-mazda' },
+    {  className: 'car-toyota' },
+    {  className: 'car-tesla' },
+    {  className: 'car-volkswagen' },
+    {  className: 'car-suzuki' },
+    {  className: 'car-mercedes-benz' },
+    {  className: 'car-aston-martin-alt' },
+    {  className: 'car-audi' },
+    {  className: 'car-bentley' },
+    {  className: 'car-cadillac' },
+    {  className: 'car-chevrolet' },
+    {  className: 'car-citroen' },
+   
+
    
   ];
 
@@ -214,7 +223,7 @@ export default function Landing() {
       <MouseFollower />
 
       {/* Navigation */}
-      <nav className="fixed w-full bg-black/80 backdrop-blur-2xl z-50 border-b border-gray-800">
+      <nav className="fixed w-full bg-black/80 backdrop-blur-4xl z-50 border-gray-500 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
           <Link to="/" className="text-2xl font-bold">
             MekinaHub
@@ -249,60 +258,70 @@ export default function Landing() {
           <div className="md:hidden border-t border-gray-800 bg-black">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link to="/showroom" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
-                Showroom
+                Features
               </Link>
               <Link to="/marketplace" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
-                Marketplace
+                Pricing
               </Link>
               <Link to="/compare" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
-                Compare
+                Our Customers
               </Link>
-              <Link to="/login" className="block px-3 py-2 mt-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700">
+              <Link to="/login" className="block px-3 py-2 mt-2 rounded-lg bg-primary-500 text-black hover:bg-primary-700 hover:text-white">
                 Sign In
               </Link>
             </div>
           </div>
         )}
       </nav>
-      {/* Hero Section (unchanged) */}
+      {/* Hero Section improved */}
       <section
-        ref={heroRef}
-        className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroBg})` }}
+  ref={heroRef}
+  className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-cover bg-center"
+  style={{ backgroundImage: `url(${heroBg})` }}
+>
+  {/* Hero Content */}
+  <div className="absolute inset-0 bg-black/30"></div>
+  <div className="relative max-w-7xl mx-auto flex flex-col items-center">
+    <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6">
+      The best Car Website in <span className="text-primary-400">Ethiopia</span>
+    </h1>
+    <p className="text-xl text-gray-200 mb-8 max-w-2xl">
+      Don’t deny yourself the pleasure of driving the best premium cars from around the world—here and now.
+    </p>
+    <div className="flex flex-col sm:flex-row justify-center gap-4">
+      <Link
+        to="/showroom"
+        className="px-8 py-4 rounded-lg bg-primary-600 text-white hover:bg-primary-700 flex items-center justify-center"
       >
-        <div className="absolute inset-0 bg-black/30" />
-        <div className="relative max-w-7xl mx-auto flex flex-col items-center">
-          <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6">
-            Premium Car Rental in <span className="text-primary-400">Your City</span>
-          </h1>
-          <p className="text-xl text-gray-200 mb-8 max-w-2xl">
-            Don’t deny yourself the pleasure of driving the best premium cars from around the world—here and now.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              to="/showroom"
-              className="px-8 py-4 rounded-lg bg-primary-600 text-white hover:bg-primary-700 flex items-center justify-center"
-            >
-              Book Now <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-          </div>
-        </div>
-      </section>
+        Explore <ArrowRight className="w-5 h-5 ml-2" />
+      </Link>
+      <Link
+        to="/register"
+        className="px-6 py-4 rounded-lg bg-white text-black font-bold font-sans hover:bg-gray-500 hover:text-white flex items-center justify-center"
+      >
+        Register <ArrowRight className="w-12 h-5 ml-2" />
+      </Link>
+    </div>
+  </div>
+</section>
+{/* Gradient divider acting as a bottom border */}
+<div className="w-full h-2 bg-gradient-to-r from-primary-400 to-transparent"></div>
 
-      {/* Brand Logos Section */}
-      <section className="py-12 bg-black">
+
+
+      {/* Brand Logos Section correct icon size */}
+      <section className="py-12 bg-black   ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-6">
-          <h2 className="text-xl font-semibold">Our Trusted Brands</h2>
-          <p className="text-gray-400">
+          <h2 className="text-xl font-semibold">Trusted Brands</h2>
+          <p className="text-gray-400 p-3">
             Driving excellence from the best manufacturers around the globe.
           </p>
         </div>
-        <div ref={brandRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
-          <div className="brand-inner flex gap-8">
+        <div ref={brandRef} className="max-w-7xl h-15 mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+          <div className="brand-inner flex gap-2 ">
             {brandIcons.map((brand, idx) => (
-              <div key={idx} className="flex flex-col items-center">
-                <i className={`${brand.className} w-28 h-28 text-gray-300`}></i>
-                <p className="mt-2 text-sm text-gray-300">{brand.name}</p>
+              <div key={idx} className="flex flex-col w-25 items-center">
+                <i className={`${brand.className} w-28 h-15 text-primary-400 text-5xl`}></i>
               </div>
             ))}
           </div>
@@ -310,29 +329,50 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section ref={featuresRef} className="py-20 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-4">Revolutionary Features</h2>
-          <p className="text-gray-400">Everything you need to make informed decisions</p>
+      <section ref={featuresRef} className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
+    <h2 className="text-3xl font-bold text-white mb-4">Revolutionary Features</h2>
+    <p className="text-gray-400">Everything you need to make informed decisions</p>
+  </div>
+  <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4 sm:px-6 lg:px-8">
+    {features.map((f) => (
+      <div
+        key={f.title}
+        className="
+          feature-card group relative p-[2px] rounded-xl 
+          bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 
+          shadow-lg hover:shadow-2xl transition-all duration-300
+        "
+      >
+        {/* Inner black container */}
+        <div
+          className="
+            bg-black rounded-[inherit] p-6 transition-all duration-300
+            group-hover:scale-105 group-hover:-translate-y-2
+            group-hover:bg-gradient-to-r 
+            group-hover:from-pink-400 
+            group-hover:via-purple-400 
+            group-hover:to-blue-400
+            group-hover:text-black
+          "
+        >
+          <div className="w-12 h-12 bg-transparent rounded-lg flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover: border-black">
+            <f.icon className="w-6 h-6 text-white group-hover:text-black " />
+          </div>
+          <h3 className="text-xl font-semibold text-white group-hover:text-black mb-2">
+            {f.title}
+          </h3>
+          <p className="text-gray-400 group-hover:text-black">{f.description}</p>
         </div>
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4 sm:px-6 lg:px-8">
-          {features.map((f) => (
-            <div
-              key={f.title}
-              className="feature-card bg-black border border-gray-800 p-6 rounded-xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-2xl"
-            >
-              <div className="w-12 h-12 bg-primary-600/20 rounded-lg flex items-center justify-center mb-4">
-                <f.icon className="w-6 h-6 text-primary-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">{f.title}</h3>
-              <p className="text-gray-400">{f.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      </div>
+    ))}
+  </div>
+</section>
+
+
 
       {/* Pricing Section */}
-      <section ref={pricingRef} className="py-20 bg-black">
+      <section ref={pricingRef} className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
           <h2 className="text-3xl font-bold text-white mb-4">Dealer Plans</h2>
           <p className="text-gray-400">Choose the perfect plan for your dealership</p>
@@ -373,7 +413,7 @@ export default function Landing() {
       </section>
 
       {/* Reviews Section */}
-      <section ref={reviewsRef} className="py-20 bg-gray-900">
+      <section ref={reviewsRef} className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
           <h2 className="text-3xl font-bold text-white mb-4">Reviews</h2>
           <p className="text-gray-400">What our customers are saying</p>
@@ -397,7 +437,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-black text-gray-400 py-12">
+      <footer className="bg-black text-gray-400 py-12 border-t border-gray-800 mt-12 pt-8 text-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
