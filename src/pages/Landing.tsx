@@ -340,8 +340,8 @@ export default function Landing() {
         key={f.title}
         className="
           feature-card group relative p-[2px] rounded-xl 
-          bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 
-          shadow-lg hover:shadow-2xl transition-all duration-300
+          bg-gradient-to-r from-primary-300 via-primary-500 to-blue-600 
+          shadow-lg hover:shadow-2xl transition-all duration-300 
         "
       >
         {/* Inner black container */}
