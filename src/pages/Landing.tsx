@@ -15,7 +15,7 @@ import {
   Star,
 } from 'lucide-react';
 import { useThemeStore } from '../store/theme';
-import MouseFollower from '../components/MouseFollower';
+import MouseFollower from '../components/SplashCursor';
 import heroBg from '../assets/Herobg.jpg';
 import 'car-makes-icons/dist/style.css';
 
