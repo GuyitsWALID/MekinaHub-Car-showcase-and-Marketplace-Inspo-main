@@ -1,42 +1,70 @@
-import React, { useState } from 'react';
+"use client";
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
+import SearchBar from '@/components/SearchBar';
+import CustomFilter from '@/components/CustomFilter';
+import BlurText from "../components/BlurText";
+import { fetchCars } from '@/utils/index';
+import CarCard from '@/components/CarCard';
 
 export default function Showroom() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [allCars, setAllCars] = useState([]);
+
+  useEffect(() => {
+    async function loadCars() {
+      const cars = await fetchCars();
+      setAllCars(cars);
+      console.log(cars);
+    }
+    loadCars();
+  }, []);
+
+  const isDataEmpty = !Array.isArray(allCars)|| allCars.length < 1 || !allCars;
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-        Car Showroom
-      </h1>
-
-      <div className="relative mb-8">
-        <input
-          type="text"
-          placeholder="Search for a car..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+    <div className='mt-2 padding-x padding-y max-width' id="discover">
+      <div className='home__text-container flex flex-col items-center'>
+        <BlurText 
+          text='Car Showcase'
+          delay={150}
+          animateBy="words"
+          direction="top"
+          className="font-sans font-extrabold text-4xl mt-0 mb-1" 
         />
-        <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+        <BlurText 
+          text='Discover the car of your dreams'
+          delay={150}
+          animateBy="words"
+          direction="top"
+          className="text-2xl mb-8" 
+        />
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Car cards will be rendered here */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <img
-            src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800"
-            alt="Car"
-            className="w-full h-48 object-cover rounded-lg mb-4"
-          />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            BMW M4 Competition
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300">
-            Experience the perfect blend of luxury and performance
-          </p>
+      <div className='home__filters flex flex-col items-center'>
+        <SearchBar  />
+        <div className='home__filter-container'>
+          <CustomFilter title="fuel" />
+          <CustomFilter title="year" />
         </div>
       </div>
+
+      {!isDataEmpty ? (
+        <section>
+         <div className='home__cars-wrapper'>
+            {allCars?.map((car) => (
+              <CarCard car={car}/>
+            ))}
+         </div>
+        </section>  
+      ): (
+        <div className='home__error-container'>
+          <h2 className='text-black text-xl font-bold'>Oops, no results</h2>
+          <p>{allCars?.message}</p>
+        </div>
+      )}
     </div>
   );
 }
+
+//so know once the user search a car the card will appear then to look further i want the user to
+//be able to click the card then view the 3d model using threejs be able to manipualte and rotate 360.

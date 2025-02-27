@@ -1,24 +1,18 @@
-import * as React from "react"
+import React from "react";
 import {
   BookOpen,
   Bot,
   Command,
   Frame,
   LifeBuoy,
-  Map,
-  PieChart,
+  HelpCircle,
   Send,
-  Settings2,
   Car,
+  LayoutDashboard,
   Store,
   MessageSquare
-} from "lucide-react"
-
-import DealerDashboard from "@/pages/DealerDashboard"
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+} from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -27,10 +21,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 
 const data = {
-// user data come from the database
   user: {
     name: "Walid Murad",
     email: "mekinahub@gmail.com",
@@ -39,176 +36,120 @@ const data = {
   navMain: [
     {
       title: "Car Showroom",
-      url: "/Showroom",
       icon: Car,
       isActive: true,
+      url: "/showroom",
       items: [
         {
           title: "3D Car Models",
-          url: "#",
+          url: "/showroom",
         },
         {
           title: "Car Comparison",
-          url: "#",
+          url: "/compare",
         },
-        
       ],
     },
     {
       title: "Marketplace",
-      url: "/Marketplace",
-      icon: Store,
+      url: "/marketplace",
+      icon: Store ,
       items: [
         {
-          title: "Dealer Analytics",    
-          url: "#",
+          title: "Dealer Analytics",
+          url: "/marketplace/dealer-analytics",
         },
         {
           title: "Get Verified",
-          url: "#",
+          url: "/marketplace/get-verified",
         },
         {
           title: "Manage Listings",
-          url: "#",
+          url: "/marketplace/manage-listings",
         },
-        
       ],
     },
     {
       title: "Dealer Dashboard",
-      url: "/DealerDashboard",
-      icon: BookOpen,
+      url: "/dealer-dashboard",
+      icon: LayoutDashboard,
       items: [
         {
           title: "Dealership Profile",
-          url: "/DealerDashboard",
+          url: "/dealer-dashboard/profile",
         },
-
         {
           title: "Reports",
-          url: "/DealerDashboard",
+          url: "/dealer-dashboard/reports",
         },
       ],
     },
-   
     {
       title: "Messages",
-      url: "#",
+      url: "/messages",
       icon: MessageSquare,
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "Profile",
-          url: "#",
-        },
-        
-        {
-          title: "Billing",
-          url: "#",
-        },
-        
-      ],
     },
   ],
   navSecondary: [
     {
-        title: "Chat",
-        url: "#",
-        icon: Bot,
+      title: "Chat",
+      url: "/chat",
+      icon: Bot,
     },
     {
       title: "Support",
-      url: "#",
-      icon: LifeBuoy,
+      url: "/support",
+      icon: HelpCircle,
     },
     {
       title: "Feedback",
-      url: "#",
-      icon: Send,
+      url: "/feedback",
+      icon: Command,
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+};
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    return (
-      <Sidebar
-        // Pin the sidebar to the left, from top of header to bottom of the viewport
-        className="
-          fixed left-0 
-          top-[--header-height] 
-          bottom-0 
-          z-50 
-          w-[250px] 
-          flex 
-          flex-col 
-          bg-sidebar-primary 
-          text-white
-        "
-        {...props}
-      >
-        {/* Sidebar Header */}
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                size="lg"
-                asChild
-                className="border-b border-primary-800"
-              >
-                <a href="#">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <Command className="size-4" />
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate text-blue-300 font-semibold">
-                      MekinaHub
-                    </span>
-                    <span className="truncate text-blue-300 text-xs">
-                      Making your decision easier!
-                    </span>
-                  </div>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
-  
-        {/* Make the main content area flex-1 and scrollable */}
-        <div className="flex-1 overflow-y-auto">
-          <SidebarContent>
-            <NavMain items={data.navMain} />
-            <NavSecondary items={data.navSecondary} className="mt-auto" />
-          </SidebarContent>
-        </div>
-  
-        {/* Sidebar Footer */}
-        <SidebarFooter className="border-t border-primary-800">
-          <NavUser user={data.user} />
-        </SidebarFooter>
-      </Sidebar>
-    );
-  }
-  
-  
-  
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  return (
+    <Sidebar
+      className="fixed left-0 top-[--header-height] bottom-0 z-50 w-[250px] flex flex-col bg-sidebar-primary text-white"
+      {...props}
+    >
+      {/* Sidebar Header */}
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild className="border-b border-primary-800">
+              <Link to="/">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                  <Command className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate text-blue-300 font-semibold">
+                    MekinaHub
+                  </span>
+                  <span className="truncate text-blue-300 text-xs">
+                    Making your decision easier!
+                  </span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <SidebarContent className="flex flex-col justify-between h-full ">
+          <NavMain items={data.navMain} />
+          <NavSecondary items={data.navSecondary} className="mt-auto" />
+        </SidebarContent>
+      </div>
+
+      {/* Sidebar Footer */}
+      <SidebarFooter className="border-t border-primary-800">
+        <NavUser user={data.user} />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}

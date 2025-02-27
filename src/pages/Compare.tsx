@@ -7,7 +7,7 @@ export default function Compare() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+      <h1 className="text-3xl font-bold text-primary-700 dark:text-white mb-8">
         Car Comparison
       </h1>
 
@@ -86,9 +86,16 @@ export default function Compare() {
                 <span className="text-gray-600 dark:text-gray-400">0-60 mph:</span>
                 <span className="text-gray-900 dark:text-white">3.7s</span>
               </p>
+              
             </div>
           </div>
+          
         </div>
+        <div className=''>
+              <button className='pr-96 p-4 text-white bg-primary-600 rounded-xl text-center'>
+                Compare
+              </button>
+            </div>
       </div>
     </div>
   );

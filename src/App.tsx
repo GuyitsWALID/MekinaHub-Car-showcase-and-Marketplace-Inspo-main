@@ -11,6 +11,7 @@ import DealerDashboard from './pages/DealerDashboard';
 
 function App() {
   return (
+    
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
