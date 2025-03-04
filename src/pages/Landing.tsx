@@ -18,11 +18,23 @@ import { useThemeStore } from '../store/theme';
 import MouseFollower from '../components/SplashCursor';
 import heroBg from '../assets/Herobg.jpg';
 import 'car-makes-icons/dist/style.css';
+import CarModel from '@/components/3DCarModelViewr';
+import { Button } from '@mui/material';
+import ThemeToggle from '@/components/ThemeToggle';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Landing() {
-  const { isDarkMode } = useThemeStore(); // Removing toggle as we force dark mode
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
@@ -225,7 +237,7 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="fixed w-full bg-black/80 backdrop-blur-4xl z-50 border-gray-500 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-          <Link to="/" className="text-2xl font-bold">
+          <Link to="/" className="text-2xl text-primary-700 font-bold">
             MekinaHub
           </Link>
           <div className="hidden md:flex items-center space-x-8">
@@ -244,6 +256,9 @@ export default function Landing() {
             >
               Sign In
             </Link>
+            <button>
+              <ThemeToggle />
+            </button>
           </div>
           <div className="md:hidden">
             <button
@@ -269,43 +284,47 @@ export default function Landing() {
               <Link to="/login" className="block px-3 py-2 mt-2 rounded-lg bg-primary-500 text-black hover:bg-primary-700 hover:text-white">
                 Sign In
               </Link>
+
+              
             </div>
           </div>
         )}
       </nav>
       {/* Hero Section improved */}
-      <section
-  ref={heroRef}
-  className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-cover bg-center"
-  style={{ backgroundImage: `url(${heroBg})` }}
->
-  {/* Hero Content */}
-  <div className="absolute inset-0 bg-black/30"></div>
-  <div className="relative max-w-7xl mx-auto flex flex-col items-center">
-    <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6">
-      The best Car Website in <span className="text-primary-400">Ethiopia</span>
-    </h1>
-    <p className="text-xl text-gray-200 mb-8 max-w-2xl">
-      Don’t deny yourself the pleasure of driving the best premium cars from around the world—here and now.
-    </p>
-    <div className="flex flex-col sm:flex-row justify-center gap-4">
-      <Link
-        to="/showroom"
-        className="px-8 py-4 rounded-lg bg-primary-600 text-white hover:bg-primary-700 flex items-center justify-center"
-      >
-        Explore <ArrowRight className="w-5 h-5 ml-2" />
-      </Link>
-      <Link
-        to="/register"
-        className="px-6 py-4 rounded-lg bg-white text-black font-bold font-sans hover:bg-gray-500 hover:text-white flex items-center justify-center"
-      >
-        Register <ArrowRight className="w-12 h-5 ml-2" />
-      </Link>
-    </div>
-  </div>
-</section>
+      <section className="py-20 px-6 relative overflow-hidden">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="text-left">
+                <h1 className="text-5xl text-primary-700 md:text-6xl font-bold mb-6 tracking-tight">
+                  Welcome to MekinaHub
+                </h1>
+                <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                  Experience cars like never before with our interactive 3D showroom.
+                  Compare, customize, and connect with verified dealers.
+                </p>
+                <div className="flex gap-4">
+                  <Link to={false ? "/dashboard" : "/auth-page"}>
+                    <Button size="large" className="font-sans gap-2">
+                      Get Started
+                      <ArrowRight className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                  {/*Rember to redirect the user to go to auth if not logged in if not to showroom */}
+                  <Link  to="/Showroom">
+                    <Button size="large" variant="outlined">
+                      Browse Cars
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+              <div className="lg:h-[400px] rounded-lg overflow-hidden bg-muted">
+                <CarModel modelUrl="/corvett.glb" color="#ff0000" rotation={30} />
+              </div>
+            </div>
+          </div>
+        </section>
 {/* Gradient divider acting as a bottom border */}
-<div className="w-full h-2 bg-gradient-to-r from-primary-400 to-transparent"></div>
+<div className="w-full h-1 bg-gradient-to-r from-primary-400 to-transparent"></div>
 
 
 

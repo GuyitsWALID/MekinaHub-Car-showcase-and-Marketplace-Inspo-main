@@ -91,8 +91,8 @@ export default function Compare() {
           </div>
           
         </div>
-        <div className=''>
-              <button className='pr-96 p-4 text-white bg-primary-600 rounded-xl text-center'>
+        <div className='flex flex-col items-center justify-end'>
+              <button className=' p-4 w-full text-white bg-primary-600 rounded-xl text-center '>
                 Compare
               </button>
             </div>
