@@ -6,26 +6,27 @@ export default function Compare() {
   const [car2Search, setCar2Search] = useState('');
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto p-4">
       <h1 className="text-3xl font-bold text-primary-700 dark:text-white mb-8">
         Car Comparison
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Car 1 */}
-        <div>
+        <div className="flex flex-col">
           <div className="relative mb-4">
             <input
               type="text"
               placeholder="Search first car..."
               value={car1Search}
               onChange={(e) => setCar1Search(e.target.value)}
-              className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white 
+                         focus:outline-none focus:ring-2 focus:ring-primary-600 transition-colors"
             />
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform">
             <img
               src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800"
               alt="Car 1"
@@ -52,19 +53,20 @@ export default function Compare() {
         </div>
 
         {/* Car 2 */}
-        <div>
+        <div className="flex flex-col">
           <div className="relative mb-4">
             <input
               type="text"
               placeholder="Search second car..."
               value={car2Search}
               onChange={(e) => setCar2Search(e.target.value)}
-              className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                         focus:outline-none focus:ring-2 focus:ring-primary-600 transition-colors"
             />
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform">
             <img
               src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800"
               alt="Car 2"
@@ -86,16 +88,19 @@ export default function Compare() {
                 <span className="text-gray-600 dark:text-gray-400">0-60 mph:</span>
                 <span className="text-gray-900 dark:text-white">3.7s</span>
               </p>
-              
             </div>
           </div>
-          
         </div>
-        <div className='flex flex-col items-center justify-end'>
-              <button className=' p-4 w-full text-white bg-primary-600 rounded-xl text-center '>
-                Compare
-              </button>
-            </div>
+      </div>
+
+      {/* Compare Button */}
+      <div className="mt-8">
+        <button
+          className="p-4 w-full text-white bg-primary-600 rounded-xl text-center 
+                     hover:bg-primary-700 transition-colors"
+        >
+          Compare
+        </button>
       </div>
     </div>
   );

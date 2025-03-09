@@ -1,10 +1,16 @@
 "use client";
 
-import Image from "next/image";
+interface ButtonProps {
+  isDisabled?: boolean;
+  btnType?: "button" | "submit" | "reset";
+  containerStyles?: string;
+  textStyles?: string;
+  title: string;
+  rightIcon?: string;
+  handleClick?: () => void;
+}
 
-import { CustomButtonProps } from "../types";
-
-const Button = ({ isDisabled, btnType, containerStyles, textStyles, title, rightIcon, handleClick }: CustomButtonProps) => (
+const Button: React.FC<ButtonProps> = ({ isDisabled, btnType, containerStyles, textStyles, title, rightIcon, handleClick }) => (
   <button
     disabled={isDisabled}
     type={btnType || "button"}
@@ -14,11 +20,10 @@ const Button = ({ isDisabled, btnType, containerStyles, textStyles, title, right
     <span className={`flex-1 ${textStyles}`}>{title}</span>
     {rightIcon && (
       <div className="relative w-6 h-6">
-        <Image
+        <img
           src={rightIcon}
           alt="arrow_left"
-          fill
-          className="object-contain"
+          className="object-contain w-full h-full"
         />
       </div>
     )}

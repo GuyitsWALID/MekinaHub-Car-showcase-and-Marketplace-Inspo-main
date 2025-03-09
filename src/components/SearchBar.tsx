@@ -1,29 +1,36 @@
-import React, { useState } from "react";
+"use client";
+import React from "react";
 import SearchManufacturer from "../components/SearchManufacturer";
 import { Search } from "lucide-react";
 
 interface SearchBarProps {
   className?: string;
+  searchQuery: string;
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  onSearch: (query: string) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
-  const [manufacturer, setManufacturer] = useState('');
-  
-  const handleSearch = (e: { preventDefault: () => void; }) => {
+const SearchBar: React.FC<SearchBarProps> = ({
+  className,
+  searchQuery,
+  setSearchQuery,
+  onSearch,
+}) => {
+  // This function is triggered when the form is submitted.
+  // It prevents the default form action and calls the onSearch callback
+  // with the current search query.
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Your search logic here
+    onSearch(searchQuery);
   };
 
   return (
-    <form 
-      className={`relative w-80 ${className}`}
-      onSubmit={handleSearch}
-    >
+    <form className={`relative w-80 ${className}`} onSubmit={handleSearch}>
       <div className="flex items-center w-full overflow-visible">
         <div className="flex-1 relative">
           <SearchManufacturer
-            manufacturer={manufacturer}
-            setManufacturer={setManufacturer}
+            manufacturer={searchQuery}
+            setManufacturer={setSearchQuery}
           />
         </div>
         <button

@@ -8,6 +8,7 @@ import Marketplace from './pages/Marketplace';
 import Messages from './pages/Messages';
 import Notifications from './pages/Notifications';
 import DealerDashboard from './pages/DealerDashboard';
+import DealerAnalytics from './pages/DealerAnalytics';
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/dealer-dashboard" element={<DealerDashboard />} />
+          <Route path="/dealerdashboard" element={<DealerDashboard />} />
+          <Route path="/dealeranalytics" element={<DealerAnalytics />} />
         </Route>
       </Routes>
     </BrowserRouter>

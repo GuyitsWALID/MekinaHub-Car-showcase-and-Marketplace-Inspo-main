@@ -2,7 +2,7 @@ import { MouseEventHandler } from "react";
 
 export interface CarProps {
   city_mpg: number;
-  class: string;
+  vehicleClass: string;  // Renamed from 'class'
   combination_mpg: number;
   cylinders: number;
   displacement: number;
@@ -15,8 +15,9 @@ export interface CarProps {
   year: number;
 }
 
+
 export interface FilterProps {
-  manufacturer?: string;
+  make?: string;
   year?: number;
   model?: string;
   limit?: number;

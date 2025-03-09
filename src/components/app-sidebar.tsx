@@ -57,12 +57,9 @@ const data = {
       items: [
         {
           title: "Dealer Analytics",
-          url: "/marketplace/dealer-analytics",
+          url: "dealeranalytics",
         },
-        {
-          title: "Get Verified",
-          url: "/marketplace/get-verified",
-        },
+        
         {
           title: "Manage Listings",
           url: "/marketplace/manage-listings",
@@ -71,16 +68,16 @@ const data = {
     },
     {
       title: "Dealer Dashboard",
-      url: "/dealer-dashboard",
+      url: "/dealerdashboard",
       icon: LayoutDashboard,
       items: [
         {
           title: "Dealership Profile",
-          url: "/dealer-dashboard/profile",
+          url: "/dealerdashboard/profile",
         },
         {
           title: "Reports",
-          url: "/dealer-dashboard/reports",
+          url: "/dealerdashboard/reports",
         },
       ],
     },
