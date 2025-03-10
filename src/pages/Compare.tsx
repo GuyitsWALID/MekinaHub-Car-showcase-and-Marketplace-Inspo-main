@@ -1,107 +1,246 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+"use client";
+import React, { useState, useEffect } from "react";
+import GradientText from "@/components/GradientText";
+import SearchBar from "@/components/SearchBar";
+import CustomFilter from "@/components/CustomFilter";
+import CarCard from "@/components/CarCard";
+import { CarProps } from "@/types";
+import { fetchCars } from "@/utils";
 
 export default function Compare() {
-  const [car1Search, setCar1Search] = useState('');
-  const [car2Search, setCar2Search] = useState('');
+  // ------------------------------
+  // Car 1 States
+  // ------------------------------
+  const [searchQuery1, setSearchQuery1] = useState("");
+  const [selectedModel1, setSelectedModel1] = useState("");
+  const [selectedYear1, setSelectedYear1] = useState("");
+  const [allCars1, setAllCars1] = useState<CarProps[]>([]);
+  const [isLoading1, setIsLoading1] = useState(false);
 
+  // Derived state for checking empty data
+  const isDataEmpty1 = !Array.isArray(allCars1) || allCars1.length === 0;
+
+  // Fetch cars for Car 1
+  useEffect(() => {
+    async function loadCars1() {
+      setIsLoading1(true);
+      try {
+        const filters = {
+          make: searchQuery1,
+          model: selectedModel1,
+          year: selectedYear1 ? parseInt(selectedYear1) : 0,
+          limit: 10,
+          fuel: "",
+        };
+        const cars = await fetchCars(filters);
+        setAllCars1(cars);
+      } catch (error) {
+        console.error("Error fetching Car 1 data:", error);
+        setAllCars1([]);
+      }
+      setIsLoading1(false);
+    }
+    loadCars1();
+  }, [searchQuery1, selectedModel1, selectedYear1]);
+
+  // ------------------------------
+  // Car 2 States
+  // ------------------------------
+  const [searchQuery2, setSearchQuery2] = useState("");
+  const [selectedModel2, setSelectedModel2] = useState("");
+  const [selectedYear2, setSelectedYear2] = useState("");
+  const [allCars2, setAllCars2] = useState<CarProps[]>([]);
+  const [isLoading2, setIsLoading2] = useState(false);
+
+  // Derived state for checking empty data
+  const isDataEmpty2 = !Array.isArray(allCars2) || allCars2.length === 0;
+
+  // Fetch cars for Car 2
+  useEffect(() => {
+    async function loadCars2() {
+      setIsLoading2(true);
+      try {
+        const filters = {
+          make: searchQuery2,
+          model: selectedModel2,
+          year: selectedYear2 ? parseInt(selectedYear2) : 0,
+          limit: 10,
+          fuel: "",
+        };
+        const cars = await fetchCars(filters);
+        setAllCars2(cars);
+      } catch (error) {
+        console.error("Error fetching Car 2 data:", error);
+        setAllCars2([]);
+      }
+      setIsLoading2(false);
+    }
+    loadCars2();
+  }, [searchQuery2, selectedModel2, selectedYear2]);
+
+  // ------------------------------
+  // Rendering
+  // ------------------------------
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <h1 className="text-3xl font-bold text-primary-700 dark:text-white mb-8">
-        Car Comparison
-      </h1>
+    <>
+      {/* Page Title */}
+      <div className="flex flex-col items-center justify-center mb-12">
+        <GradientText
+          colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+          animationSpeed={3}
+          showBorder={false}
+          className="font-sans font-extrabold text-4xl bg-transparent"
+        >
+          Car Compare
+        </GradientText>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Car 1 */}
-        <div className="flex flex-col">
-          <div className="relative mb-4">
-            <input
-              type="text"
-              placeholder="Search first car..."
-              value={car1Search}
-              onChange={(e) => setCar1Search(e.target.value)}
-              className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white 
-                         focus:outline-none focus:ring-2 focus:ring-primary-600 transition-colors"
+      {/* Two side-by-side sections for Car 1 and Car 2 */}
+      <div className="max-w-7xl mx-auto p-4 flex flex-col md:flex-row gap-8">
+        {/* Car 1 Section */}
+        <div className="flex flex-col w-full md:w-1/2 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+          <h2 className="text-xl font-bold mb-4 text-gray-700 dark:text-gray-200">Car 1</h2>
+          {/* Search & Filters */}
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mb-4">
+            <SearchBar
+              searchQuery={searchQuery1}
+              setSearchQuery={setSearchQuery1}
+              onSearch={(query) => setSearchQuery1(query)}
             />
-            <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+            <CustomFilter
+              title="Model"
+              manufacturer={searchQuery1}
+              onChange={(value) => setSelectedModel1(value)}
+            />
+            <CustomFilter
+              title="Year"
+              onChange={(value) => setSelectedYear1(value)}
+            />
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform">
-            <img
-              src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800"
-              alt="Car 1"
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              BMW M4 Competition
-            </h3>
-            <div className="space-y-2">
-              <p className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Engine:</span>
-                <span className="text-gray-900 dark:text-white">3.0L Twin-Turbo</span>
-              </p>
-              <p className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Power:</span>
-                <span className="text-gray-900 dark:text-white">503 hp</span>
-              </p>
-              <p className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">0-60 mph:</span>
-                <span className="text-gray-900 dark:text-white">3.8s</span>
-              </p>
-            </div>
+          {/* Car Cards */}
+          <div className="grid grid-cols-1 gap-4">
+            {isLoading1 ? (
+              <div className="flex justify-center items-center min-h-64">
+                <div className="animate-pulse flex space-x-4">
+                  <div className="rounded-full bg-gray-300 dark:bg-gray-600 h-12 w-12"></div>
+                  <div className="flex-1 space-y-4 py-1">
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : isDataEmpty1 ? (
+              <div className="flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-2xl p-12 text-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-16 w-16 text-gray-400 dark:text-gray-500 mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"
+                  />
+                </svg>
+                <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-200 mb-2">
+                  No results found
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Try adjusting your search criteria
+                </p>
+              </div>
+            ) : (
+              allCars1.map((car: CarProps, index: number) => (
+                <CarCard key={index} car={car} onSelect={() => {}} />
+              ))
+            )}
           </div>
         </div>
 
-        {/* Car 2 */}
-        <div className="flex flex-col">
-          <div className="relative mb-4">
-            <input
-              type="text"
-              placeholder="Search second car..."
-              value={car2Search}
-              onChange={(e) => setCar2Search(e.target.value)}
-              className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                         focus:outline-none focus:ring-2 focus:ring-primary-600 transition-colors"
+        {/* Car 2 Section */}
+        <div className="flex flex-col w-full md:w-1/2 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+          <h2 className="text-xl font-bold mb-4 text-gray-700 dark:text-gray-200">Car 2</h2>
+          {/* Search & Filters */}
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mb-4">
+            <SearchBar
+              searchQuery={searchQuery2}
+              setSearchQuery={setSearchQuery2}
+              onSearch={(query) => setSearchQuery2(query)}
             />
-            <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+            <CustomFilter
+              title="Model"
+              manufacturer={searchQuery2}
+              onChange={(value) => setSelectedModel2(value)}
+            />
+            <CustomFilter
+              title="Year"
+              onChange={(value) => setSelectedYear2(value)}
+            />
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform">
-            <img
-              src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800"
-              alt="Car 2"
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Mercedes-AMG C63
-            </h3>
-            <div className="space-y-2">
-              <p className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Engine:</span>
-                <span className="text-gray-900 dark:text-white">4.0L V8 Twin-Turbo</span>
-              </p>
-              <p className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Power:</span>
-                <span className="text-gray-900 dark:text-white">503 hp</span>
-              </p>
-              <p className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">0-60 mph:</span>
-                <span className="text-gray-900 dark:text-white">3.7s</span>
-              </p>
-            </div>
+          {/* Car Cards */}
+          <div className="grid grid-cols-1 gap-4">
+            {isLoading2 ? (
+              <div className="flex justify-center items-center min-h-64">
+                <div className="animate-pulse flex space-x-4">
+                  <div className="rounded-full bg-gray-300 dark:bg-gray-600 h-12 w-12"></div>
+                  <div className="flex-1 space-y-4 py-1">
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : isDataEmpty2 ? (
+              <div className="flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-2xl p-12 text-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-16 w-16 text-gray-400 dark:text-gray-500 mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"
+                  />
+                </svg>
+                <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-200 mb-2">
+                  No results found
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Try adjusting your search criteria
+                </p>
+              </div>
+            ) : (
+              allCars2.map((car: CarProps, index: number) => (
+                <CarCard key={index} car={car} onSelect={() => {}} />
+              ))
+            )}
           </div>
         </div>
       </div>
 
       {/* Compare Button */}
-      <div className="mt-8">
+      <div className="max-w-7xl mx-auto p-4">
         <button
-          className="p-4 w-full text-white bg-primary-600 rounded-xl text-center 
-                     hover:bg-primary-700 transition-colors"
+          className="w-full p-4 text-white bg-blue-600 rounded-xl 
+                     hover:bg-blue-700 transition-colors text-center"
         >
           Compare
         </button>
       </div>
-    </div>
+    </>
   );
 }

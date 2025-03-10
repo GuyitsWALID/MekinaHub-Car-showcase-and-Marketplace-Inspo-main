@@ -25,7 +25,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <form className={`relative w-80 ${className}`} onSubmit={handleSearch}>
+    <form className={`relative w-220 ${className}`} onSubmit={handleSearch}>
       <div className="flex items-center w-full overflow-visible">
         <div className="flex-1 relative">
           <SearchManufacturer

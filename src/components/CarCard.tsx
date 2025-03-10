@@ -1,23 +1,37 @@
 "use client";
 
+import React from "react";
 import { calculateCarRent, generateCarImageUrl } from "../utils";
 import { CarProps } from "../types";
-import CustomButton from "./CustomButton";
 
 interface CarCardProps {
   car: CarProps;
-  onSelect: () => void;
+  onSelect?: () => void;
+  // Optional: If you want to preserve hover in some places,
+  // you can toggle it via a prop. Defaults to false.
+  disableHoverEffect?: boolean;
 }
 
-const CarCard = ({ car, onSelect }: CarCardProps) => {
+const CarCard: React.FC<CarCardProps> = ({
+  car,
+  onSelect,
+  disableHoverEffect = false,
+}) => {
   const { city_mpg, year, make, model, transmission, drive } = car;
   const carRent = calculateCarRent(city_mpg, year);
 
   return (
-    <div className="flex flex-col p-6 justify-center items-start text-black-100 bg-primary-blue-100 hover:bg-white hover:shadow-md rounded-3xl group">
+    <div
+      onClick={onSelect} // entire card is clickable
+      className={`
+        flex flex-col p-6 justify-center items-start text-black-100 
+        bg-primary-blue-100 rounded-3xl cursor-pointer
+        ${!disableHoverEffect ? "hover:bg-white hover:shadow-md" : ""}
+      `}
+    >
       <div className="w-full flex justify-between items-start gap-2">
         <h2 className="text-[22px] leading-[26px] font-bold capitalize">
-          {make} {model}
+          {make} {model} {year}
         </h2>
       </div>
 
@@ -35,37 +49,20 @@ const CarCard = ({ car, onSelect }: CarCardProps) => {
         />
       </div>
 
-      <div className="relative flex w-full mt-2">
-        <div className="flex group-hover:invisible w-full justify-between text-grey">
-          <div className="flex flex-col justify-center items-center gap-2">
-            <img
-              src="/steering-wheel.svg"
-              width={20}
-              height={20}
-              alt="steering wheel"
-            />
-            <p className="text-[14px] leading-[17px]">
-              {transmission === "a" ? "Automatic" : "Manual"}
-            </p>
-          </div>
-          <div className="flex flex-col justify-center items-center gap-2">
-            <img src="/tire.svg" width={20} height={20} alt="tire" />
-            <p className="text-[14px] leading-[17px]">{drive.toUpperCase()}</p>
-          </div>
-          <div className="flex flex-col justify-center items-center gap-2">
-            <img src="/gas.svg" width={20} height={20} alt="gas" />
-            <p className="text-[14px] leading-[17px]">{city_mpg} MPG</p>
-          </div>
+      <div className="relative flex w-full mt-2 justify-between text-grey">
+        <div className="flex flex-col justify-center items-center gap-2">
+          <img src="/steering-wheel.svg" width={20} height={20} alt="steering wheel" />
+          <p className="text-[14px] leading-[17px]">
+            {transmission === "a" ? "Automatic" : "Manual"}
+          </p>
         </div>
-
-        <div className="hidden group-hover:flex absolute bottom-0 w-full z-10">
-          <CustomButton
-            title="View More"
-            containerStyles="w-full py-[16px] rounded-full bg-primary-blue"
-            textStyles="text-white text-[14px] leading-[17px] font-bold"
-            rightIcon="/right-arrow.svg"
-            handleClick={onSelect}
-          />
+        <div className="flex flex-col justify-center items-center gap-2">
+          <img src="/tire.svg" width={20} height={20} alt="tire" />
+          <p className="text-[14px] leading-[17px]">{drive.toUpperCase()}</p>
+        </div>
+        <div className="flex flex-col justify-center items-center gap-2">
+          <img src="/gas.svg" width={20} height={20} alt="gas" />
+          <p className="text-[14px] leading-[17px]">{city_mpg} MPG</p>
         </div>
       </div>
     </div>
