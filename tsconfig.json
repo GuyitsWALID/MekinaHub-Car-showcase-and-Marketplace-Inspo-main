@@ -1,51 +1,27 @@
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ],
   "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler", // Required for Vite
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"] // Alias for Vite (must mirror in vite.config.ts)
     },
-    "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "noEmit": true,
-    "incremental": true,
-    "module": "esnext",
+    "types": ["vite/client", "react", "react-dom"], // Vite env types + React
+    "strict": true,
+    "jsx": "react-jsx", // Auto-imports JSX runtime (no need for React import)
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "skipLibCheck": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "strictNullChecks": true
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
+    "src",
+    "vite.config.ts", // Include Vite config
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "**/*.d.ts" // Type declarations
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules", "dist"]
 }

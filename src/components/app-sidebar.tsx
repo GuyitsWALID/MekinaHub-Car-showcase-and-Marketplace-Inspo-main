@@ -88,11 +88,7 @@ const data = {
     },
   ],
   navSecondary: [
-    {
-      title: "Chat",
-      url: "/chat",
-      icon: Bot,
-    },
+   
     {
       title: "Support",
       url: "/support",

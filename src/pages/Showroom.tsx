@@ -6,11 +6,10 @@ import BlurText from "@/components/BlurText";
 import GradientText from "@/components/GradientText";
 import { fetchCars } from "@/utils";
 import CarCard from "@/components/CarCard";
-import Car360Viewer from "@/components/3DCarModelViewr"; // New 360° viewer with slider
+import Car360Viewer from "@/components/3DCarModelViewr"; // 360° viewer with slider
 import { CarProps } from "@/types";
 
 export default function Showroom() {
-  // State declarations
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -20,7 +19,6 @@ export default function Showroom() {
 
   // Handle manufacturer search
   const handleSearch = async (query: string) => {
-    console.log("Searching for manufacturer:", query);
     setSearchQuery(query);
   };
 
@@ -47,13 +45,14 @@ export default function Showroom() {
     loadCars();
   }, [searchQuery, selectedModel, selectedYear]);
 
-  // Toggle selection: clicking a card sets it as selected; clicking it again deselects.
+  // Select a car to show side-by-side layout
   const handleSelectCar = (car: CarProps) => {
-    if (selectedCar && selectedCar === car) {
-      setSelectedCar(null);
-    } else {
-      setSelectedCar(car);
-    }
+    setSelectedCar(car);
+  };
+
+  // Deselect the car (go back to grid view)
+  const handleDeselectCar = () => {
+    setSelectedCar(null);
   };
 
   const isDataEmpty = !Array.isArray(allCars) || allCars.length === 0;
@@ -79,7 +78,7 @@ export default function Showroom() {
         />
       </div>
 
-      {/* Search and Filters */}
+      {/* Search & Filters */}
       <div className="bg-transparent rounded-2xl p-4 transition-all duration-300">
         <div className="flex flex-wrap items-center justify-center gap-3">
           <SearchBar
@@ -99,23 +98,24 @@ export default function Showroom() {
         </div>
       </div>
 
-      {/* If a car is selected, show its card and the 360° viewer side by side.
-          Otherwise, show the grid of car cards. */}
+      {/* Conditional Rendering */}
       {selectedCar ? (
+        // Show the side-by-side layout
         <div className="flex flex-col md:flex-row items-center justify-center gap-8 mt-8">
-          {/* Selected Car Card */}
+          {/* Car Card on the left */}
           <div className="w-full md:w-1/2">
             <CarCard
               car={selectedCar}
-              onSelect={() => handleSelectCar(selectedCar)}
+              onSelect={handleDeselectCar} // Clicking again deselects
             />
           </div>
-          {/* 360° Viewer Container with Slider */}
-          <div className="w-full md:w-1/2 h-[500px] rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          {/* 360° Viewer on the right */}
+          <div className="w-full md:w-1/2 h-[500px] rounded-lg bg-transparent flex items-center justify-center">
             <Car360Viewer car={selectedCar} />
           </div>
         </div>
       ) : (
+        // Show the grid
         <div className="my-8 min-h-[200px]">
           {isLoading ? (
             <div className="flex justify-center items-center min-h-64">

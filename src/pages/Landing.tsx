@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   Car,
   Scale,
@@ -13,14 +13,14 @@ import {
   X,
   ChevronRight,
   Star,
-} from 'lucide-react';
-import { useThemeStore } from '../store/theme';
-import MouseFollower from '../components/SplashCursor';
-import heroBg from '../assets/Herobg.jpg';
-import 'car-makes-icons/dist/style.css';
-import CarModel from '@/components/3DCarModelViewr';
-import { Button } from '@mui/material';
-import ThemeToggle from '@/components/ThemeToggle';
+} from "lucide-react";
+import { useThemeStore } from "../store/theme";
+import MouseFollower from "../components/SplashCursor";
+import heroBg from "../assets/Herobg.jpg";
+import "car-makes-icons/dist/style.css";
+import CarModel from "@/components/modelcomp";
+import { Button } from "@mui/material";
+import ThemeToggle from "@/components/ThemeToggle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -29,107 +29,112 @@ export default function Landing() {
 
   useEffect(() => {
     if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
-  
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Refs for sections we want to scroll to
   const heroRef = useRef<HTMLDivElement>(null);
   const brandRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
 
-  // Define brand icons array using CSS classes from car-makes-icons
-  const brandIcons = [
-    {  className: 'car-acura' },
-    {  className: 'car-alfa-romeo' },
-    {  className: 'car-dodge' },
-    {  className: 'car-ferrari' },
-    {  className: 'car-fiat' },
-    {  className: 'car-ford' },
-    { className: 'car-jeep-alt' },
-    {  className: 'car-land-rover' },
-    {  className: 'car-bmw' },
-    {  className: 'car-lexus' },
-    {  className: 'car-mazda' },
-    {  className: 'car-toyota' },
-    {  className: 'car-tesla' },
-    {  className: 'car-volkswagen' },
-    {  className: 'car-suzuki' },
-    {  className: 'car-mercedes-benz' },
-    {  className: 'car-aston-martin-alt' },
-    {  className: 'car-audi' },
-    {  className: 'car-bentley' },
-    {  className: 'car-cadillac' },
-    {  className: 'car-chevrolet' },
-    {  className: 'car-citroen' },
-   
+  // Smooth scroll function
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: "smooth" });
+      setIsMenuOpen(false); // Close mobile menu if open
+    }
+  };
 
-   
+  const brandIcons = [
+    { className: "car-acura" },
+    { className: "car-alfa-romeo" },
+    { className: "car-dodge" },
+    { className: "car-ferrari" },
+    { className: "car-fiat" },
+    { className: "car-ford" },
+    { className: "car-jeep-alt" },
+    { className: "car-land-rover" },
+    { className: "car-bmw" },
+    { className: "car-lexus" },
+    { className: "car-mazda" },
+    { className: "car-toyota" },
+    { className: "car-tesla" },
+    { className: "car-volkswagen" },
+    { className: "car-suzuki" },
+    { className: "car-mercedes-benz" },
+    { className: "car-aston-martin-alt" },
+    { className: "car-audi" },
+    { className: "car-bentley" },
+    { className: "car-cadillac" },
+    { className: "car-chevrolet" },
+    { className: "car-citroen" },
   ];
 
-  // Data arrays
   const features = [
     {
       icon: Car,
-      title: '3D Car Showroom',
-      description: 'Explore cars in stunning 3D with 360° views and detailed specs.',
+      title: "3D Car Showroom",
+      description:
+        "Explore cars in stunning 3D with 360° views and detailed specs.",
     },
     {
       icon: Scale,
-      title: 'Smart Comparison',
-      description: 'Compare cars side by side with detailed specs and features.',
+      title: "Smart Comparison",
+      description:
+        "Compare cars side by side with detailed specs and features.",
     },
     {
       icon: Store,
-      title: 'Marketplace',
-      description: 'Buy and sell cars directly through our trusted dealer network.',
+      title: "Marketplace",
+      description: "Buy and sell cars through our trusted dealer network.",
     },
     {
       icon: MessageSquare,
-      title: 'Direct Communication',
-      description: 'Chat with dealers and get instant responses to your queries.',
+      title: "Direct Communication",
+      description: "Chat with dealers and get instant responses to your queries.",
     },
   ];
 
   const pricingPlans = [
     {
-      name: 'Basic Dealer',
-      price: '99',
+      name: "Basic Dealer",
+      price: "1500",
       features: [
-        'Up to 10 car listings',
-        'Basic analytics',
-        'Standard support',
-        'Basic dealer profile',
+        "Up to 5 car listings per week ",
+        "Standard support",
+        "Basic dealer profile",
       ],
     },
     {
-      name: 'Premium Dealer',
-      price: '199',
+      name: "Premium Dealer",
+      price: "2500",
       features: [
-        'Unlimited car listings',
-        'Advanced analytics',
-        'Priority support',
-        'Featured listings',
-        'Custom dealer profile',
-        'Lead generation tools',
+        "15 car listings per week",
+        "Advanced analytics",
+        "Priority support",
+        "Featured listings",
+        "Custom dealer profile",
+        ,
       ],
       popular: true,
     },
     {
-      name: 'Enterprise',
-      price: 'Custom',
+      name: "Enterprise",
+      price: "Custom",
       features: [
-        'Multiple dealership locations',
-        'API access',
-        'Dedicated account manager',
-        'Custom integration',
-        'Advanced reporting',
-        'White-label options',
+        "Multiple dealership locations",
+        "API access",
+        "Dedicated account manager",
+        "Custom integration",
+        "Advanced reporting",
+        "White-label options",
       ],
     },
   ];
@@ -137,63 +142,71 @@ export default function Landing() {
   const reviews = [
     {
       quote:
-        'This platform revolutionized how I shop for cars. The 3D showroom is incredible!',
-      author: 'Jane Doe',
+        "This platform revolutionized how I shop for cars. The 3D showroom is incredible!",
+      author: "Jane Doe",
       rating: 5,
     },
     {
-      quote: 'Excellent experience and top-notch customer service. Highly recommend!',
-      author: 'John Smith',
+      quote:
+        "Excellent experience and top-notch customer service. Highly recommend!",
+      author: "John Smith",
       rating: 4,
     },
     {
       quote:
-        'A game-changer in the automotive market. The smart comparison tool is a lifesaver.',
-      author: 'Alice Johnson',
+        "A game-changer in the automotive market. The smart comparison tool is a lifesaver.",
+      author: "Alice Johnson",
       rating: 5,
     },
   ];
 
   // Force dark mode
   useEffect(() => {
-    document.documentElement.classList.add('dark');
+    document.documentElement.classList.add("dark");
   }, []);
 
   // GSAP Animations
   useEffect(() => {
-    // HERO Animation (unchanged)
-    const heroTimeline = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.5 });
+    const heroTimeline = gsap.timeline({
+      defaults: { ease: "power3.out" },
+      delay: 0.5,
+    });
     if (heroRef.current) {
-      const h1 = heroRef.current.querySelector('h1');
-      const p = heroRef.current.querySelector('p');
-      const links = Array.from(heroRef.current.querySelectorAll('a'));
+      const h1 = heroRef.current.querySelector("h1");
+      const p = heroRef.current.querySelector("p");
+      const links = Array.from(heroRef.current.querySelectorAll("a"));
       heroTimeline
         .fromTo(h1, { opacity: 0, y: -50 }, { opacity: 1, y: 0, duration: 0.8 })
-        .fromTo(p, { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
+        .fromTo(
+          p,
+          { opacity: 0, y: -30 },
+          { opacity: 1, y: 0, duration: 0.6 },
+          "-=0.4"
+        )
         .fromTo(
           links,
           { opacity: 0, y: -20 },
           { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 },
-          '-=0.4'
+          "-=0.4"
         );
     }
 
     // Horizontal scroll for Brand Logos section
     if (brandRef.current) {
-      const brandInner = brandRef.current.querySelector('.brand-inner');
+      const brandInner = brandRef.current.querySelector(".brand-inner");
       gsap.to(brandInner, {
-        x: '-40%',
-        ease: 'none',
+        x: "-40%",
+        ease: "none",
         scrollTrigger: {
           trigger: brandRef.current,
-          start: 'top bottom',
-          end: 'bottom top',
+          start: "top bottom",
+          end: "bottom top",
           scrub: 1,
         },
       });
     }
 
-    // Helper: Animate section items using fromTo (like hero)
+    // Helper function to animate sections
     const animateSection = (
       ref: React.RefObject<HTMLDivElement>,
       selector: string,
@@ -214,8 +227,8 @@ export default function Landing() {
               delay: i * staggerDelay,
               scrollTrigger: {
                 trigger: item,
-                start: 'top 90%',
-                toggleActions: 'play none none none',
+                start: "top 90%",
+                toggleActions: "play none none none",
               },
             }
           );
@@ -223,9 +236,9 @@ export default function Landing() {
       }
     };
 
-    animateSection(featuresRef, '.feature-card', 0.4, 50, 0.1);
-    animateSection(pricingRef, '.pricing-card', 0.4, 50, 0.1);
-    animateSection(reviewsRef, '.review-card', 0.45, 50, 0.1);
+    animateSection(featuresRef, ".feature-card", 0.4, 50, 0.1);
+    animateSection(pricingRef, ".pricing-card", 0.4, 50, 0.1);
+    animateSection(reviewsRef, ".review-card", 0.45, 50, 0.1);
 
     ScrollTrigger.refresh();
   }, []);
@@ -235,36 +248,43 @@ export default function Landing() {
       <MouseFollower />
 
       {/* Navigation */}
-      <nav className="fixed w-full bg-black/80 backdrop-blur-4xl z-50 border-gray-500 ">
+      <nav className="fixed w-full bg-black/80 backdrop-blur-4xl z-50 border-gray-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
           <Link to="/" className="text-2xl text-primary-700 font-bold">
             MekinaHub
           </Link>
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/showroom" className="hover:text-gray-300">
-              Showroom
-            </Link>
-            <Link to="/marketplace" className="hover:text-gray-300">
-              Marketplace
-            </Link>
-            <Link to="/compare" className="hover:text-gray-300">
-              Compare
-            </Link>
+            {/* Instead of linking to different pages, we use buttons to scroll to sections */}
+            <button
+              onClick={() => scrollToSection(featuresRef)}
+              className="hover:text-gray-300"
+            >
+              Features
+            </button>
+            <button
+              onClick={() => scrollToSection(pricingRef)}
+              className="hover:text-gray-300"
+            >
+              Pricing
+            </button>
+            <button
+              onClick={() => scrollToSection(reviewsRef)}
+              className="hover:text-gray-300"
+            >
+              Our Customers
+            </button>
+            {/* Sign In link with improved styling */}
             <Link
               to="/login"
-              className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+              className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
             >
               Sign In
             </Link>
-            <button>
-              <ThemeToggle />
-            </button>
+
+            <ThemeToggle />
           </div>
           <div className="md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2"
-            >
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2">
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
@@ -272,75 +292,88 @@ export default function Landing() {
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-800 bg-black">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link to="/showroom" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
+              <button
+                onClick={() => scrollToSection(featuresRef)}
+                className="block px-3 py-2 rounded-lg hover:bg-gray-800 text-left w-full"
+              >
                 Features
-              </Link>
-              <Link to="/marketplace" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
+              </button>
+              <button
+                onClick={() => scrollToSection(pricingRef)}
+                className="block px-3 py-2 rounded-lg hover:bg-gray-800 text-left w-full"
+              >
                 Pricing
-              </Link>
-              <Link to="/compare" className="block px-3 py-2 rounded-lg hover:bg-gray-800">
+              </button>
+              <button
+                onClick={() => scrollToSection(reviewsRef)}
+                className="block px-3 py-2 rounded-lg hover:bg-gray-800 text-left w-full"
+              >
                 Our Customers
-              </Link>
-              <Link to="/login" className="block px-3 py-2 mt-2 rounded-lg bg-primary-500 text-black hover:bg-primary-700 hover:text-white">
+              </button>
+              <Link
+                to="/login"
+                className="block px-3 py-2 mt-2 rounded-lg bg-primary-500 text-black hover:bg-primary-700 hover:text-white"
+              >
                 Sign In
               </Link>
-
-              
             </div>
           </div>
         )}
       </nav>
-      {/* Hero Section improved */}
-      <section className="py-20 px-6 relative overflow-hidden">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="text-left">
-                <h1 className="text-5xl text-primary-700 md:text-6xl font-bold mb-6 tracking-tight">
-                  Welcome to MekinaHub
-                </h1>
-                <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                  Experience cars like never before with our interactive 3D showroom.
-                  Compare, customize, and connect with verified dealers.
-                </p>
-                <div className="flex gap-4">
-                  <Link to={false ? "/dashboard" : "/auth-page"}>
-                    <Button size="large" className="font-sans gap-2">
-                      Get Started
-                      <ArrowRight className="h-5 w-5" />
-                    </Button>
-                  </Link>
-                  {/*Rember to redirect the user to go to auth if not logged in if not to showroom */}
-                  <Link  to="/Showroom">
-                    <Button size="large" variant="outlined">
-                      Browse Cars
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="lg:h-[400px] rounded-lg overflow-hidden bg-muted">
-                <CarModel modelUrl="/corvett.glb" color="#ff0000" rotation={30} />
+
+      {/* Hero Section */}
+      <section ref={heroRef} className="py-20 px-6 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="text-left">
+              <h1 className="text-5xl text-primary-700 md:text-6xl font-bold mb-6 tracking-tight">
+                Welcome to MekinaHub
+              </h1>
+              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                Experience cars like never before with our interactive 3D
+                showroom. Compare, customize, and connect with verified dealers.
+              </p>
+              <div className="flex gap-4">
+                <Link to="/auth-page">
+                  <Button size="large" className="font-sans gap-2">
+                    Get Started
+                    <ArrowRight className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link to="/showroom">
+                  <Button size="large" variant="outlined">
+                    Browse Cars
+                  </Button>
+                </Link>
               </div>
             </div>
+            <div className="lg:h-[400px] rounded-lg overflow-hidden bg-muted">
+              <CarModel modelUrl="/corvett.glb" color="#ff0000" rotation={30} />
+            </div>
           </div>
-        </section>
-{/* Gradient divider acting as a bottom border */}
-<div className="w-full h-1 bg-gradient-to-r from-primary-400 to-transparent"></div>
+        </div>
+      </section>
 
+      <div className="w-full h-1 bg-gradient-to-r from-primary-400 to-transparent"></div>
 
-
-      {/* Brand Logos Section correct icon size */}
-      <section className="py-12 bg-black   ">
+      {/* Brand Logos Section */}
+      <section
+        ref={brandRef}
+        className="py-12 bg-black"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-6">
           <h2 className="text-xl font-semibold">Trusted Brands</h2>
           <p className="text-gray-400 p-3">
             Driving excellence from the best manufacturers around the globe.
           </p>
         </div>
-        <div ref={brandRef} className="max-w-7xl h-15 mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
-          <div className="brand-inner flex gap-2 ">
+        <div className="max-w-7xl h-15 mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+          <div className="brand-inner flex gap-2">
             {brandIcons.map((brand, idx) => (
               <div key={idx} className="flex flex-col w-25 items-center">
-                <i className={`${brand.className} w-28 h-15 text-primary-400 text-5xl`}></i>
+                <i
+                  className={`${brand.className} w-28 h-15 text-primary-400 text-5xl`}
+                ></i>
               </div>
             ))}
           </div>
@@ -348,77 +381,91 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section ref={featuresRef} className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-    <h2 className="text-3xl font-bold text-white mb-4">Revolutionary Features</h2>
-    <p className="text-gray-400">Everything you need to make informed decisions</p>
-  </div>
-  <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4 sm:px-6 lg:px-8">
-    {features.map((f) => (
-      <div
-        key={f.title}
-        className="
-          feature-card group relative p-[2px] rounded-xl 
-          bg-gradient-to-r from-primary-300 via-primary-500 to-blue-600 
-          shadow-lg hover:shadow-2xl transition-all duration-300 
-        "
+      <section
+        ref={featuresRef}
+        className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center"
       >
-        {/* Inner black container */}
-        <div
-          className="
-            bg-black rounded-[inherit] p-6 transition-all duration-300
-            group-hover:scale-105 group-hover:-translate-y-2
-            group-hover:bg-gradient-to-r 
-            group-hover:from-pink-400 
-            group-hover:via-purple-400 
-            group-hover:to-blue-400
-            group-hover:text-black
-          "
-        >
-          <div className="w-12 h-12 bg-transparent rounded-lg flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover: border-black">
-            <f.icon className="w-6 h-6 text-white group-hover:text-black " />
-          </div>
-          <h3 className="text-xl font-semibold text-white group-hover:text-black mb-2">
-            {f.title}
-          </h3>
-          <p className="text-gray-400 group-hover:text-black">{f.description}</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Revolutionary Features
+          </h2>
+          <p className="text-gray-400">
+            Everything you need to make informed decisions
+          </p>
         </div>
-      </div>
-    ))}
-  </div>
-</section>
-
-
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4 sm:px-6 lg:px-8">
+          {features.map((f) => (
+            <div
+              key={f.title}
+              className="feature-card group relative p-[2px] rounded-xl 
+                         bg-gradient-to-r from-primary-300 via-primary-500 to-blue-600 
+                         shadow-lg hover:shadow-2xl transition-all duration-300"
+            >
+              <div
+                className="bg-black rounded-[inherit] p-6 transition-all duration-300
+                           group-hover:scale-105 group-hover:-translate-y-2
+                           group-hover:bg-gradient-to-r 
+                           group-hover:from-pink-400 
+                           group-hover:via-purple-400 
+                           group-hover:to-blue-400
+                           group-hover:text-black"
+              >
+                <div className="w-12 h-12 bg-transparent rounded-lg flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:border-black">
+                  <f.icon className="w-6 h-6 text-white group-hover:text-black" />
+                </div>
+                <h3 className="text-xl font-semibold text-white group-hover:text-black mb-2">
+                  {f.title}
+                </h3>
+                <p className="text-gray-400 group-hover:text-black">
+                  {f.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Pricing Section */}
-      <section ref={pricingRef} className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center">
+      <section
+        ref={pricingRef}
+        className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
           <h2 className="text-3xl font-bold text-white mb-4">Dealer Plans</h2>
-          <p className="text-gray-400">Choose the perfect plan for your dealership</p>
+          <p className="text-gray-400">
+            Choose the perfect plan for your dealership
+          </p>
         </div>
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4 sm:px-6 lg:px-8">
           {pricingPlans.map((p) => (
             <div
               key={p.name}
               className={`pricing-card bg-black border border-gray-800 rounded-xl shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl ${
-                p.popular ? 'ring-2 ring-primary-600' : ''
+                p.popular ? "ring-2 ring-primary-600" : ""
               }`}
             >
               {p.popular && (
-                <div className="bg-primary-600 text-white text-center py-1">Most Popular</div>
+                <div className="bg-primary-600 text-white text-center py-1">
+                  Most Popular
+                </div>
               )}
               <div className="p-6">
-                <h3 className="text-xl font-semibold text-white mb-4">{p.name}</h3>
+                <h3 className="text-xl font-semibold text-white mb-4">
+                  {p.name}
+                </h3>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-white">${p.price}</span>
-                  {p.price !== 'Custom' && (
+                  <span className="text-4xl font-bold text-white">
+                    ${p.price}
+                  </span>
+                  {p.price !== "Custom" && (
                     <span className="text-gray-400">/month</span>
                   )}
                 </div>
                 <ul className="space-y-4 mb-6 text-gray-300">
                   {p.features.map((feat) => (
                     <li key={feat} className="flex items-center">
-                      <CheckCircle2 className="w-5 h-5 text-green-400 mr-2" /> {feat}
+                      <CheckCircle2 className="w-5 h-5 text-green-400 mr-2" />{" "}
+                      {feat}
                     </li>
                   ))}
                 </ul>
@@ -432,7 +479,10 @@ export default function Landing() {
       </section>
 
       {/* Reviews Section */}
-      <section ref={reviewsRef} className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center">
+      <section
+        ref={reviewsRef}
+        className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
           <h2 className="text-3xl font-bold text-white mb-4">Reviews</h2>
           <p className="text-gray-400">What our customers are saying</p>
@@ -460,28 +510,42 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-2xl font-bold text-primary-600 mb-4">MekinaHub</h3>
+              <h3 className="text-2xl font-bold text-primary-600 mb-4">
+                MekinaHub
+              </h3>
               <p>
-                Revolutionizing the automotive marketplace with cutting-edge technology.
+                Revolutionizing the automotive marketplace with cutting-edge
+                technology.
               </p>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-white">Features</h4>
+              <h4 className="text-lg font-semibold mb-4 text-white">
+                Features
+              </h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link to="/showroom" className="hover:text-white">
+                  <button
+                    onClick={() => scrollToSection(heroRef)}
+                    className="hover:text-white text-left"
+                  >
                     3D Showroom
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link to="/compare" className="hover:text-white">
+                  <button
+                    onClick={() => scrollToSection(featuresRef)}
+                    className="hover:text-white text-left"
+                  >
                     Car Comparison
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link to="/marketplace" className="hover:text-white">
+                  <button
+                    onClick={() => scrollToSection(pricingRef)}
+                    className="hover:text-white text-left"
+                  >
                     Marketplace
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>

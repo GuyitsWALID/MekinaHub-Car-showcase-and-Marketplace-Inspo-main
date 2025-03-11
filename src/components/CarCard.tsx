@@ -1,14 +1,11 @@
 "use client";
-
 import React from "react";
 import { calculateCarRent, generateCarImageUrl } from "../utils";
-import { CarProps } from "../types";
+import { CarProps } from "@/types";
 
 interface CarCardProps {
   car: CarProps;
   onSelect?: () => void;
-  // Optional: If you want to preserve hover in some places,
-  // you can toggle it via a prop. Defaults to false.
   disableHoverEffect?: boolean;
 }
 
@@ -22,20 +19,24 @@ const CarCard: React.FC<CarCardProps> = ({
 
   return (
     <div
-      onClick={onSelect} // entire card is clickable
+      onClick={onSelect}
       className={`
         flex flex-col p-6 justify-center items-start text-black-100 
-        bg-primary-blue-100 rounded-3xl cursor-pointer
-        ${!disableHoverEffect ? "hover:bg-white hover:shadow-md" : ""}
+        bg-transparent rounded-3xl cursor-pointer
+        ${
+          !disableHoverEffect
+            ? "hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            : ""
+        }
       `}
     >
       <div className="w-full flex justify-between items-start gap-2">
-        <h2 className="text-[22px] leading-[26px] font-bold capitalize">
+        <h2 className="text-[22px] leading-[26px] font-bold capitalize text-gray-900 dark:text-gray-100">
           {make} {model} {year}
         </h2>
       </div>
 
-      <p className="flex mt-6 text-[32px] leading-[38px] font-extrabold">
+      <p className="flex mt-6 text-[32px] leading-[38px] font-extrabold text-gray-900 dark:text-gray-100">
         <span className="self-start text-[14px] leading-[17px] font-semibold">$</span>
         {carRent}
         <span className="self-end text-[14px] leading-[17px] font-medium">/day</span>
@@ -49,7 +50,7 @@ const CarCard: React.FC<CarCardProps> = ({
         />
       </div>
 
-      <div className="relative flex w-full mt-2 justify-between text-grey">
+      <div className="relative flex w-full mt-2 justify-between text-gray-500 dark:text-gray-400">
         <div className="flex flex-col justify-center items-center gap-2">
           <img src="/steering-wheel.svg" width={20} height={20} alt="steering wheel" />
           <p className="text-[14px] leading-[17px]">
