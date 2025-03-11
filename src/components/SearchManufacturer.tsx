@@ -1,6 +1,6 @@
 import React from "react";
 import { Combobox, Transition } from "@headlessui/react";
-import { manufacturers } from "@/constants";
+import { manufacturers } from "../constants";
 import { useState, Fragment } from "react";
 import { Search, Check } from "lucide-react";
 

@@ -7,7 +7,7 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "../components/ui/breadcrumb";
 
 // Helper function to convert URL segments to a user-friendly format
 const formatSegment = (segment: string) =>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle, Heart, Bookmark, X } from 'lucide-react';
-import BlurText from '@/components/BlurText';
+import BlurText from '../components/BlurText';
 
 export default function Marketplace() {
   // Sample data (replace with real backend data as needed)

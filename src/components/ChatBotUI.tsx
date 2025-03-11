@@ -2,9 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { ScrollArea } from '../components/ui/scroll-area';
 import { Cross1Icon, ChatBubbleIcon, PersonIcon, RocketIcon } from '@radix-ui/react-icons';
 
 interface Message {

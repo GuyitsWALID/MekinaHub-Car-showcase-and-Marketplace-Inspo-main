@@ -21,11 +21,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from "../components/ui/sidebar";
 
-import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
-import { NavUser } from "@/components/nav-user";
+import { NavMain } from "../components/nav-main";
+import { NavSecondary } from "../components/nav-secondary";
+import { NavUser } from "../components/nav-user";
 
 const data = {
   user: {

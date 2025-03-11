@@ -18,9 +18,9 @@ import { useThemeStore } from "../store/theme";
 import MouseFollower from "../components/SplashCursor";
 import heroBg from "../assets/Herobg.jpg";
 import "car-makes-icons/dist/style.css";
-import CarModel from "@/components/modelcomp";
+import CarModel from "../components/modelcomp";
 import { Button } from "@mui/material";
-import ThemeToggle from "@/components/ThemeToggle";
+import ThemeToggle from "../components/ThemeToggle";
 
 gsap.registerPlugin(ScrollTrigger);
 

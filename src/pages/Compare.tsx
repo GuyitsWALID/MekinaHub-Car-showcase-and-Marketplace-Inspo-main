@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import GradientText from "@/components/GradientText";
-import SearchBar from "@/components/SearchBar";
-import CustomFilter from "@/components/CustomFilter";
-import CarCard from "@/components/CarCard";
-import { CarProps } from "@/types";
-import { fetchCars } from "@/utils";
+import GradientText from "../components/GradientText";
+import SearchBar from "../components/SearchBar";
+import CustomFilter from "../components/CustomFilter";
+import CarCard from "../components/CarCard";
+import { CarProps } from "../types";
+import { fetchCars } from "../utils";
 
 export default function Compare() {
   // ------------------------------

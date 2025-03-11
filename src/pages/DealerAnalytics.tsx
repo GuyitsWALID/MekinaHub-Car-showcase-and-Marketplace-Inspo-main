@@ -1,6 +1,6 @@
 import React from 'react';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import BlurText from '@/components/BlurText';
+import BlurText from '../components/BlurText';
 
 export default function DealerAnalytics() {
   // Sample analytics statistics data (replace with real data)

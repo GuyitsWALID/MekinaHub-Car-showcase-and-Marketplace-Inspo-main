@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { ChevronDown, Check } from "lucide-react";
-import { fetchCarModels } from "@/utils";
+import { fetchCarModels } from "../utils";
 
 interface CustomFilterProps {
   title: "Model" | "Year";

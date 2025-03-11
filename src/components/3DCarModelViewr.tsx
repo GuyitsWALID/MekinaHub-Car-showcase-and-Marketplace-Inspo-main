@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { CarProps } from "@/types";
-import { generateCar360Images } from "@/utils";
+import { CarProps } from "../types";
+import { generateCar360Images } from "../utils";
 
 interface Car360ViewerProps {
   car: CarProps;

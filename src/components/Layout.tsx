@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { AppSidebar } from "@/components/app-sidebar";
-import DynamicBreadcrumbs from "@/components/DynamicBreadcrumbs";
-import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "../components/app-sidebar";
+import DynamicBreadcrumbs from "../components/DynamicBreadcrumbs";
+import { Separator } from "../components/ui/separator";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "../components/ui/sidebar";
 import ThemeToggle from "./ThemeToggle";
 import ChatBotUI from "./ChatBotUI";
 import { Bot } from "lucide-react";

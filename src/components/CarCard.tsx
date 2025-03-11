@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { calculateCarRent, generateCarImageUrl } from "../utils";
-import { CarProps } from "@/types";
+import { CarProps } from "../types";
 
 interface CarCardProps {
   car: CarProps;

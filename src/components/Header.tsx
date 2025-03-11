@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { Moon, Sun, Car } from "lucide-react";
 import { useState, useEffect } from "react";
