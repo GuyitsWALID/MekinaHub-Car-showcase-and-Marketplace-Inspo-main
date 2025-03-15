@@ -90,3 +90,75 @@ export function generateCar360Images(car: CarProps, angles?: string[]): string[]
 
   return urls;
 }
+// Add to utils/index.ts
+// A simple cache to store comparisons keyed by car details
+const compareCache = new Map<string, string>();
+
+export const compareCars = async (car1: CarProps, car2: CarProps): Promise<string> => {
+  try {
+    // Validate that required fields exist in both car objects
+    const requiredFields: (keyof CarProps)[] = ['make', 'model', 'year', 'city_mpg'];
+    for (const field of requiredFields) {
+      if (!car1[field] || !car2[field]) {
+        throw new Error(`Missing ${field} in one of the car objects.`);
+      }
+    }
+
+    // Generate a unique cache key based on the car details
+    const cacheKey = `${car1.make}-${car1.model}-${car1.year}-${car1.city_mpg}::${car2.make}-${car2.model}-${car2.year}-${car2.city_mpg}`;
+    
+    // If the result is already cached, return it immediately.
+    if (compareCache.has(cacheKey)) {
+      console.log("Returning cached comparison result.");
+      return compareCache.get(cacheKey)!;
+    }
+
+    // Load the API key from environment variables
+    const API_KEY = import.meta.env.VITE_OPENAI_KEY;
+    if (!API_KEY) {
+      throw new Error("API key is missing. Please check your environment variables.");
+    }
+
+    // Construct the prompt to send to OpenAI
+    const prompt = `Compare the following two cars based on their specifications:
+- Car 1: ${car1.make} ${car1.model} (${car1.year}), ${car1.city_mpg} MPG
+- Car 2: ${car2.make} ${car2.model} (${car2.year}), ${car2.city_mpg} MPG
+
+Provide a detailed analysis including aspects such as performance, efficiency, and practicality.`;
+
+    // Call the OpenAI API
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 300
+      })
+    });
+
+    // Handle unsuccessful responses
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenAI API Error:", errorData);
+      return "Failed to fetch comparison. Please check the console for details.";
+    }
+
+    // Parse the response
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content || "No response from AI.";
+
+    // Cache the result to avoid duplicate API calls in the future
+    compareCache.set(cacheKey, result);
+
+    return result;
+
+  } catch (error) {
+    console.error("Comparison error:", error);
+    return "Comparison unavailable. Please check the console for error details.";
+  }
+};

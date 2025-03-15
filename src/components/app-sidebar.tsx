@@ -60,26 +60,14 @@ const data = {
           url: "dealeranalytics",
         },
         
-        {
-          title: "Manage Listings",
-          url: "/marketplace/manage-listings",
-        },
+       
       ],
     },
     {
       title: "Dealer Dashboard",
       url: "/dealerdashboard",
       icon: LayoutDashboard,
-      items: [
-        {
-          title: "Dealership Profile",
-          url: "/dealerdashboard/profile",
-        },
-        {
-          title: "Reports",
-          url: "/dealerdashboard/reports",
-        },
-      ],
+      
     },
     {
       title: "Messages",

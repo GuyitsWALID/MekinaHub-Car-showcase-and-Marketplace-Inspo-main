@@ -4,7 +4,12 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { Moon, Sun, Car } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function Header({ darkMode, setDarkMode }) {
+interface HeaderProps {
+  darkMode: boolean;
+  setDarkMode: (value: boolean) => void;
+}
+
+export default function Header({ darkMode, setDarkMode }: HeaderProps) {
   const { signOut } = useAuth();
   const { user } = useUser();
 

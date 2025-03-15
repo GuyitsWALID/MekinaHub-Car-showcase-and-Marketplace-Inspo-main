@@ -1,28 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageCircle, Heart, Bookmark, X } from 'lucide-react';
 import BlurText from '../components/BlurText';
+import { supabase } from '../supabaseClient';
+
+export interface Listing {
+  id: number;
+  title: string;
+  price: string;
+  details: string;
+  dealer?: string;
+  image: string;
+  status: string;
+  created_at: string;
+}
 
 export default function Marketplace() {
-  // Sample data (replace with real backend data as needed)
-  const [listings, setListings] = useState([
-    {
-      id: 1,
-      title: 'BMW M4 Competition',
-      price: '$85,000',
-      details: '2023 • 1,500 miles • Automatic',
-      dealer: 'AutoMax Dealers',
-      image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
-      status: 'Available',
-    },
-    // More listings can be added dynamically
-  ]);
-
-  // State for the "Become a Dealer" modal
+  const [listings, setListings] = useState<Listing[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleFormSubmit = (e) => {
+  // Local state for UI feedback (colors) on favorites and heart clicks
+  const [favoritedIds, setFavoritedIds] = useState<number[]>([]);
+  const [heartedIds, setHeartedIds] = useState<number[]>([]);
+
+  // Fetch listings from Supabase
+  const fetchListings = async () => {
+    const { data, error } = await supabase
+      .from('listings')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error fetching listings:', error);
+    } else if (data) {
+      setListings(data as Listing[]);
+    }
+  };
+
+  useEffect(() => {
+    fetchListings();
+    // Optionally add realtime subscriptions here.
+  }, []);
+
+  // Toggle favorite for a listing (bookmark icon)
+  const toggleFavorite = async (listing: Listing) => {
+    if (favoritedIds.includes(listing.id)) {
+      // Remove favorite
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .eq('listing_id', listing.id);
+      if (error) {
+        console.error('Error removing favorite:', error);
+      } else {
+        setFavoritedIds((prev) => prev.filter((id) => id !== listing.id));
+      }
+    } else {
+      // Add favorite
+      const { error } = await supabase
+        .from('favorites')
+        .insert([{ listing_id: listing.id }]);
+      if (error) {
+        console.error('Error adding favorite:', error);
+      } else {
+        setFavoritedIds((prev) => [...prev, listing.id]);
+      }
+    }
+  };
+
+  // Handle heart click for dealer analytics
+  const toggleHeart = async (listing: Listing) => {
+    if (!heartedIds.includes(listing.id)) {
+      // Check if an analytics record exists for this listing
+      const { data: existing, error: fetchError } = await supabase
+        .from('heart_analytics')
+        .select('*')
+        .eq('listing_id', listing.id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching heart analytics:', fetchError);
+        return;
+      }
+
+      if (existing) {
+        // Update the record by incrementing heartClicks
+        const { error } = await supabase
+          .from('heart_analytics')
+          .update({ heartClicks: existing.heartClicks + 1 })
+          .eq('listing_id', listing.id);
+        if (error) {
+          console.error('Error updating heart analytics:', error);
+        }
+      } else {
+        // Insert new record with an initial heart click count of 1
+        const { error } = await supabase
+          .from('heart_analytics')
+          .insert([{ listing_id: listing.id, heartClicks: 1 }]);
+        if (error) {
+          console.error('Error inserting heart analytics:', error);
+        }
+      }
+      // Mark the listing as hearted in local state (UI feedback)
+      setHeartedIds((prev) => [...prev, listing.id]);
+    }
+  };
+
+  // Handle "Become a Dealer" form submission (placeholder)
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: Handle the form submission (e.g., send data to your backend)
     console.log('Form submitted');
     setIsModalOpen(false);
   };
@@ -59,7 +143,6 @@ export default function Marketplace() {
                 {car.status}
               </span>
             </div>
-            
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -69,28 +152,30 @@ export default function Marketplace() {
                   <p className="text-gray-600 dark:text-gray-400">{car.price}</p>
                 </div>
                 <div className="flex space-x-2">
+                  {/* Heart button: if already clicked, show in red */}
                   <button
-                    aria-label="Like"
-                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
+                    aria-label="Like (heart)"
+                    onClick={() => toggleHeart(car)}
+                    className="p-2 transition-colors duration-200"
                   >
-                    <Heart className="w-5 h-5" />
+                    <Heart className={`w-5 h-5 ${heartedIds.includes(car.id) ? "text-red-600" : "text-gray-600"}`} />
                   </button>
+                  {/* Bookmark button: toggles favorite state and color */}
                   <button
-                    aria-label="Bookmark"
-                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
+                    aria-label="Favorite (bookmark)"
+                    onClick={() => toggleFavorite(car)}
+                    className="p-2 transition-colors duration-200"
                   >
-                    <Bookmark className="w-5 h-5" />
+                    <Bookmark className={`w-5 h-5 ${favoritedIds.includes(car.id) ? "text-blue-600" : "text-gray-600"}`} />
                   </button>
                 </div>
               </div>
-              
               <div className="space-y-2 mb-4">
                 <p className="text-gray-600 dark:text-gray-400">{car.details}</p>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Listed by {car.dealer}
+                  Listed by {car.dealer || "Unknown Dealer"}
                 </p>
               </div>
-              
               <button className="w-full flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Contact Dealer
@@ -108,12 +193,10 @@ export default function Marketplace() {
           aria-labelledby="modal-title"
           aria-modal="true"
         >
-          {/* Overlay */}
           <div
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setIsModalOpen(false)}
           ></div>
-          {/* Modal Content */}
           <div className="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-lg w-full z-10">
             <button
               aria-label="Close modal"
@@ -179,3 +262,4 @@ export default function Marketplace() {
     </div>
   );
 }
+

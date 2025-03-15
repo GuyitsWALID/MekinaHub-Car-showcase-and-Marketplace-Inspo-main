@@ -47,6 +47,10 @@ export default function ChatWidget() {
     setInput('');
     setIsLoading(true);
 
+    const formattedMessages = messages.map(msg => `${msg.isUser ? 'User' : 'Bot'}: ${msg.text}`).join("\n");
+
+    const systemPrompt = `You are a chatbot that is working as a car enthusuast and you know everything about cars and about every model when asked about cars you will respond in details.`;
+
     try {
       const response = await fetch('https://superb-fernanda-nextflow-37cec34f.koyeb.app/o3mini', {
         method: 'POST',

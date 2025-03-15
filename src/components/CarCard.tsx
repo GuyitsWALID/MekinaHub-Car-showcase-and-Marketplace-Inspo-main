@@ -7,22 +7,31 @@ interface CarCardProps {
   car: CarProps;
   onSelect?: () => void;
   disableHoverEffect?: boolean;
+  isSelected?: boolean; // NEW PROP
 }
+
 
 const CarCard: React.FC<CarCardProps> = ({
   car,
   onSelect,
   disableHoverEffect = false,
+  isSelected = false, // DEFAULT VALUE
 }) => {
   const { city_mpg, year, make, model, transmission, drive } = car;
   const carRent = calculateCarRent(city_mpg, year);
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect?.(); // SAFE CALL
+  };
+
   return (
     <div
-      onClick={onSelect}
+      onClick={handleClick} // UPDATED HANDLER
       className={`
         flex flex-col p-6 justify-center items-start text-black-100 
-        bg-transparent rounded-3xl cursor-pointer
+        bg-transparent rounded-3xl cursor-pointer relative
+        ${isSelected ? "ring-2 ring-blue-500" : ""} // SELECTION INDICATOR
         ${
           !disableHoverEffect
             ? "hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
