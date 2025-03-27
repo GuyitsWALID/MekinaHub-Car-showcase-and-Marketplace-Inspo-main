@@ -9,6 +9,9 @@ import Messages from './pages/Messages';
 import Notifications from './pages/Notifications';
 import DealerDashboard from './pages/DealerDashboard';
 import DealerAnalytics from './pages/DealerAnalytics';
+import Signup from './pages/Signup';
+import Signin from './pages/Signin';
+
 
 function App() {
   return (
@@ -24,7 +27,9 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/dealerdashboard" element={<DealerDashboard />} />
           <Route path="/dealeranalytics" element={<DealerAnalytics />} />
-        </Route>
+      </Route>
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/signin" element={<Signin />}/>
       </Routes>
     </BrowserRouter>
   );

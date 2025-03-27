@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Tag } from 'lucide-react';
 import { supabase } from '../supabaseClient'; // Adjust path as needed
+import { Plus, Edit2, Trash2, Tag } from 'lucide-react';
 
-// Define a type for a Listing
 interface Listing {
   id: number;
   title: string;
@@ -14,21 +13,20 @@ interface Listing {
 }
 
 export default function DealerDashboard() {
-  // Annotate state so that listings is a Listing array.
   const [listings, setListings] = useState<Listing[]>([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editListing, setEditListing] = useState<Listing | null>(null);
 
-  // Function to fetch listings from Supabase
+  // Fetch listings from Supabase
   const fetchListings = async () => {
     const { data, error } = await supabase
       .from('listings')
       .select('*')
       .order('created_at', { ascending: false });
+
     if (error) {
       console.error('Error fetching listings:', error);
     } else if (data) {
-      // Assert that data is an array of Listing objects.
       setListings(data as Listing[]);
     }
   };
@@ -37,36 +35,37 @@ export default function DealerDashboard() {
     fetchListings();
   }, []);
 
-  // Handle adding a new listing with a properly typed event parameter.
+  // Add a new listing
   const handleAddListing = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+    const formData = new FormData(e.currentTarget);
+
     const title = formData.get('title') as string;
     const price = formData.get('price') as string;
     const status = formData.get('status') as string;
     const image = formData.get('image') as string;
     const details = formData.get('details') as string;
 
-    const { error } = await supabase.from('listings').insert([
-      { title, price, status, image, details },
-    ]);
+    const { error } = await supabase
+      .from('listings')
+      .insert([{ title, price, status, image, details }]);
+
     if (error) {
       console.error('Error adding listing:', error);
     } else {
-      fetchListings();
       setIsAddModalOpen(false);
-      form.reset();
+      e.currentTarget.reset();
+      fetchListings();
     }
   };
 
-  // Handle editing an existing listing.
+  // Edit an existing listing
   const handleEditListing = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!editListing) return; // Guard clause for null value
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const id = editListing.id;
+    if (!editListing) return;
+
+    const formData = new FormData(e.currentTarget);
+
     const title = formData.get('title') as string;
     const price = formData.get('price') as string;
     const status = formData.get('status') as string;
@@ -76,17 +75,18 @@ export default function DealerDashboard() {
     const { error } = await supabase
       .from('listings')
       .update({ title, price, status, image, details })
-      .eq('id', id);
+      .eq('id', editListing.id);
+
     if (error) {
       console.error('Error updating listing:', error);
     } else {
-      fetchListings();
       setEditListing(null);
-      form.reset();
+      e.currentTarget.reset();
+      fetchListings();
     }
   };
 
-  // Annotate the parameter id as a number.
+  // Delete a listing
   const handleDeleteListing = async (id: number) => {
     const { error } = await supabase.from('listings').delete().eq('id', id);
     if (error) {
@@ -96,11 +96,13 @@ export default function DealerDashboard() {
     }
   };
 
+  // Mark as sold
   const handleMarkAsSold = async (id: number) => {
     const { error } = await supabase
       .from('listings')
       .update({ status: 'Sold' })
       .eq('id', id);
+
     if (error) {
       console.error('Error marking listing as sold:', error);
     } else {
@@ -124,99 +126,66 @@ export default function DealerDashboard() {
         </button>
       </div>
 
-      {/* Listings Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Vehicle
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Listed Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {listings.map((listing) => (
-                <tr key={listing.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0">
-                        <img
-                          className="h-10 w-10 rounded-full object-cover"
-                          src={listing.image}
-                          alt={listing.title}
-                        />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {listing.title}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {listing.details}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      {listing.price}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        listing.status === 'Available'
-                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                          : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                      }`}
-                    >
-                      {listing.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(listing.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        className="text-primary-600 dark:text-primary-400 hover:text-primary-900"
-                        onClick={() => setEditListing(listing)}
-                      >
-                        <Edit2 className="w-5 h-5" />
-                      </button>
-                      <button
-                        className="text-red-600 dark:text-red-400 hover:text-red-900"
-                        onClick={() => handleDeleteListing(listing.id)}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                      {listing.status === 'Available' && (
-                        <button
-                          className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900"
-                          onClick={() => handleMarkAsSold(listing.id)}
-                        >
-                          <Tag className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Card Layout for All Screen Sizes */}
+      <div className="space-y-4">
+        {listings.map((listing) => (
+          <div
+            key={listing.id}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col sm:flex-row items-start sm:space-x-4"
+          >
+            <img
+              className="h-24 w-24 rounded object-cover mb-4 sm:mb-0"
+              src={listing.image}
+              alt={listing.title}
+            />
+            <div className="flex-1">
+              <div className="text-xl font-semibold text-gray-900 dark:text-white">
+                {listing.title}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {listing.details}
+              </div>
+              <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                Price: <span className="font-medium">{listing.price}</span>
+              </div>
+              <div className="text-sm mt-1">
+                Status:{' '}
+                <span
+                  className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    listing.status === 'Available'
+                      ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                      : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                  }`}
+                >
+                  {listing.status}
+                </span>
+              </div>
+              {/* Actions (Edit, Delete, Mark as Sold) */}
+              <div className="mt-3 flex space-x-2">
+                <button
+                  className="text-primary-600 dark:text-primary-400 hover:text-primary-900"
+                  onClick={() => setEditListing(listing)}
+                >
+                  <Edit2 className="w-5 h-5" />
+                </button>
+                <button
+                  className="text-red-600 dark:text-red-400 hover:text-red-900"
+                  onClick={() => handleDeleteListing(listing.id)}
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+                {listing.status === 'Available' && (
+                  <button
+                    className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900"
+                    onClick={() => handleMarkAsSold(listing.id)}
+                  >
+                    <Tag className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Add Listing Modal */}
@@ -229,7 +198,7 @@ export default function DealerDashboard() {
           <div
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setIsAddModalOpen(false)}
-          ></div>
+          />
           <div className="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-lg w-full z-10">
             <button
               aria-label="Close modal"
@@ -283,6 +252,7 @@ export default function DealerDashboard() {
                   type="text"
                   name="image"
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  placeholder="http://example.com/myimage.jpg"
                   required
                 />
               </div>
@@ -292,12 +262,10 @@ export default function DealerDashboard() {
                 </label>
                 <textarea
                   name="details"
-                  defaultValue={editListing?.details}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   rows={3}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
-                ></textarea>
-
+                />
               </div>
               <button
                 type="submit"
@@ -320,7 +288,7 @@ export default function DealerDashboard() {
           <div
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setEditListing(null)}
-          ></div>
+          />
           <div className="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-lg w-full z-10">
             <button
               aria-label="Close modal"
@@ -378,6 +346,7 @@ export default function DealerDashboard() {
                   name="image"
                   defaultValue={editListing.image}
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  placeholder="http://example.com/myimage.jpg"
                   required
                 />
               </div>
@@ -388,10 +357,10 @@ export default function DealerDashboard() {
                 <textarea
                   name="details"
                   defaultValue={editListing.details}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   rows={3}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
-                ></textarea>
+                />
               </div>
               <button
                 type="submit"

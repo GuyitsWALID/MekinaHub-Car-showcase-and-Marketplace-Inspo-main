@@ -37,6 +37,7 @@
     "car-makes-icons": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.5.0",
     "gsap": "^3.12.7",
     "lucide-react": "^0.344.0",
     "openai": "^4.87.3",
