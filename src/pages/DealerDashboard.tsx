@@ -17,6 +17,18 @@ export default function DealerDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editListing, setEditListing] = useState<Listing | null>(null);
 
+  // Controlled state for details with word limit
+  const [addDetails, setAddDetails] = useState('');
+  const [editDetails, setEditDetails] = useState('');
+  const MAX_WORDS = 100;
+
+  // Update editDetails state when editListing changes
+  useEffect(() => {
+    if (editListing) {
+      setEditDetails(editListing.details);
+    }
+  }, [editListing]);
+
   // Fetch listings from Supabase
   const fetchListings = async () => {
     const { data, error } = await supabase
@@ -35,6 +47,24 @@ export default function DealerDashboard() {
     fetchListings();
   }, []);
 
+  // Handler for details change (Add)
+  const handleAddDetailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const words = value.trim().split(/\s+/).filter(word => word !== "");
+    if (words.length <= MAX_WORDS) {
+      setAddDetails(value);
+    }
+  };
+
+  // Handler for details change (Edit)
+  const handleEditDetailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const words = value.trim().split(/\s+/).filter(word => word !== "");
+    if (words.length <= MAX_WORDS) {
+      setEditDetails(value);
+    }
+  };
+
   // Add a new listing
   const handleAddListing = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -43,18 +73,49 @@ export default function DealerDashboard() {
     const title = formData.get('title') as string;
     const price = formData.get('price') as string;
     const status = formData.get('status') as string;
-    const image = formData.get('image') as string;
-    const details = formData.get('details') as string;
+
+    // Get image inputs
+    const fileInput = formData.get('imageFile') as File;
+    const imageUrlInput = formData.get('imageUrl') as string;
+
+    let finalImage = imageUrlInput; // Default to URL provided
+
+    // If file input exists, upload file
+    if (fileInput && fileInput.size > 0) {
+      const { error: uploadError } = await supabase.storage
+        .from('images') // Ensure you have a bucket named "images"
+        .upload(`public/${fileInput.name}`, fileInput);
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        return;
+      } else {
+        const { data: publicUrlData } = supabase.storage
+          .from('images')
+          .getPublicUrl(`public/${fileInput.name}`);
+        finalImage = publicUrlData?.publicUrl || finalImage;
+      }
+    }
+
+    // Use controlled description value (addDetails)
+    const details = addDetails;
+
+    // Second check on word limit
+    const words = details.trim().split(/\s+/).filter(word => word !== "");
+    if (words.length > MAX_WORDS) {
+      alert(`Details must not exceed ${MAX_WORDS} words.`);
+      return;
+    }
 
     const { error } = await supabase
       .from('listings')
-      .insert([{ title, price, status, image, details }]);
+      .insert([{ title, price, status, image: finalImage, details }]);
 
     if (error) {
       console.error('Error adding listing:', error);
     } else {
       setIsAddModalOpen(false);
       e.currentTarget.reset();
+      setAddDetails('');
       fetchListings();
     }
   };
@@ -69,12 +130,37 @@ export default function DealerDashboard() {
     const title = formData.get('title') as string;
     const price = formData.get('price') as string;
     const status = formData.get('status') as string;
-    const image = formData.get('image') as string;
-    const details = formData.get('details') as string;
+
+    // Get image inputs
+    const fileInput = formData.get('imageFile') as File;
+    const imageUrlInput = formData.get('imageUrl') as string;
+
+    let finalImage = imageUrlInput;
+    if (fileInput && fileInput.size > 0) {
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(`public/${fileInput.name}`, fileInput);
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        return;
+      } else {
+        const { data: publicUrlData } = supabase.storage
+          .from('images')
+          .getPublicUrl(`public/${fileInput.name}`);
+        finalImage = publicUrlData?.publicUrl || finalImage;
+      }
+    }
+
+    const details = editDetails;
+    const words = details.trim().split(/\s+/).filter(word => word !== "");
+    if (words.length > MAX_WORDS) {
+      alert(`Details must not exceed ${MAX_WORDS} words.`);
+      return;
+    }
 
     const { error } = await supabase
       .from('listings')
-      .update({ title, price, status, image, details })
+      .update({ title, price, status, image: finalImage, details })
       .eq('id', editListing.id);
 
     if (error) {
@@ -82,6 +168,7 @@ export default function DealerDashboard() {
     } else {
       setEditListing(null);
       e.currentTarget.reset();
+      setEditDetails('');
       fetchListings();
     }
   };
@@ -244,13 +331,26 @@ export default function DealerDashboard() {
                   <option value="Sold">Sold</option>
                 </select>
               </div>
+              {/* Image File Upload */}
               <div className="mb-4">
                 <label className="block text-gray-700 dark:text-gray-300">
-                  Image URL
+                  Upload Image
+                </label>
+                <input
+                  type="file"
+                  name="imageFile"
+                  accept="image/*"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+              {/* OR Image URL */}
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300">
+                  Or Image URL
                 </label>
                 <input
                   type="text"
-                  name="image"
+                  name="imageUrl"
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   placeholder="http://example.com/myimage.jpg"
                   required
@@ -258,11 +358,13 @@ export default function DealerDashboard() {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 dark:text-gray-300">
-                  Details
+                  Details (max {MAX_WORDS} words)
                 </label>
                 <textarea
                   name="details"
                   rows={3}
+                  value={addDetails}
+                  onChange={handleAddDetailsChange}
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
                 />
@@ -337,13 +439,26 @@ export default function DealerDashboard() {
                   <option value="Sold">Sold</option>
                 </select>
               </div>
+              {/* Image File Upload */}
               <div className="mb-4">
                 <label className="block text-gray-700 dark:text-gray-300">
-                  Image URL
+                  Upload Image
+                </label>
+                <input
+                  type="file"
+                  name="imageFile"
+                  accept="image/*"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+              {/* OR Image URL */}
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300">
+                  Or Image URL
                 </label>
                 <input
                   type="text"
-                  name="image"
+                  name="imageUrl"
                   defaultValue={editListing.image}
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   placeholder="http://example.com/myimage.jpg"
@@ -352,12 +467,13 @@ export default function DealerDashboard() {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 dark:text-gray-300">
-                  Details
+                  Details (max {MAX_WORDS} words)
                 </label>
                 <textarea
                   name="details"
-                  defaultValue={editListing.details}
                   rows={3}
+                  value={editDetails}
+                  onChange={handleEditDetailsChange}
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
                 />
@@ -375,3 +491,4 @@ export default function DealerDashboard() {
     </div>
   );
 }
+

@@ -11,7 +11,6 @@ import {
   ArrowRight,
   Menu,
   X,
-  ChevronRight,
   Star,
 } from "lucide-react";
 import { useThemeStore } from "../store/theme";
@@ -27,6 +26,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Landing() {
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
+  // Dynamically add/remove the "dark" class based on isDarkMode
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
@@ -37,7 +37,7 @@ export default function Landing() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Refs for sections we want to scroll to
+  // Refs for sections
   const heroRef = useRef<HTMLDivElement>(null);
   const brandRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -121,7 +121,6 @@ export default function Landing() {
         "Priority support",
         "Featured listings",
         "Custom dealer profile",
-        ,
       ],
       popular: true,
     },
@@ -159,11 +158,6 @@ export default function Landing() {
       rating: 5,
     },
   ];
-
-  // Force dark mode
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-  }, []);
 
   // GSAP Animations
   useEffect(() => {
@@ -236,6 +230,7 @@ export default function Landing() {
       }
     };
 
+    // Animate features, pricing, and reviews
     animateSection(featuresRef, ".feature-card", 0.4, 50, 0.1);
     animateSection(pricingRef, ".pricing-card", 0.4, 50, 0.1);
     animateSection(reviewsRef, ".review-card", 0.45, 50, 0.1);
@@ -244,17 +239,16 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-black text-primary-600 dark:text-white relative overflow-hidden">
       <MouseFollower />
 
       {/* Navigation */}
-      <nav className="fixed w-full bg-black/80 backdrop-blur-4xl z-50 border-gray-500">
+      <nav className="fixed w-full  backdrop-blur-4xl z-50 border-gray-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
           <Link to="/" className="text-2xl text-primary-700 font-bold">
             MekinaHub
           </Link>
           <div className="hidden md:flex items-center space-x-8">
-            {/* Instead of linking to different pages, we use buttons to scroll to sections */}
             <button
               onClick={() => scrollToSection(featuresRef)}
               className="hover:text-gray-300"
@@ -271,15 +265,16 @@ export default function Landing() {
               onClick={() => scrollToSection(reviewsRef)}
               className="hover:text-gray-300"
             >
-              Our Customers
+              Reviews
             </button>
-            {/* Sign In link with improved styling */}
-            <Link
-              to="/login"
-              className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-            >
-              Sign In
-            </Link>
+            <button>
+              <Link
+                to="/signin"
+                className="flexpx-9 py-1 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+              >
+                Sign In
+              </Link>
+            </button>
 
             <ThemeToggle />
           </div>
@@ -290,11 +285,11 @@ export default function Landing() {
           </div>
         </div>
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-800 bg-black">
+          <div className="md:hidden border-b border-primary-600 bg-white dark:bg-black">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <button
                 onClick={() => scrollToSection(featuresRef)}
-                className="block px-3 py-2 rounded-lg hover:bg-gray-800 text-left w-full"
+                className="block px-3 py-2 rounded-lg hover:bg-primary-600 text-left w-full"
               >
                 Features
               </button>
@@ -308,11 +303,11 @@ export default function Landing() {
                 onClick={() => scrollToSection(reviewsRef)}
                 className="block px-3 py-2 rounded-lg hover:bg-gray-800 text-left w-full"
               >
-                Our Customers
+                Reviews
               </button>
               <Link
                 to="/signin"
-                className="block px-5 py-2 mt-2 rounded-lg bg-primary-500 text-black hover:bg-primary-700 hover:text-white"
+                className="block px-5 py-2 mt-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
               >
                 Sign In
               </Link>
@@ -357,10 +352,7 @@ export default function Landing() {
       <div className="w-full h-1 bg-gradient-to-r from-primary-400 to-transparent"></div>
 
       {/* Brand Logos Section */}
-      <section
-        ref={brandRef}
-        className="py-12 bg-black"
-      >
+      <section ref={brandRef} className="py-12 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-6">
           <h2 className="text-xl font-semibold">Trusted Brands</h2>
           <p className="text-gray-400 p-3">
@@ -383,13 +375,13 @@ export default function Landing() {
       {/* Features Section */}
       <section
         ref={featuresRef}
-        className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center"
+        className="py-20 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black transition-colors duration-300 text-center"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-4">
+          <h2 className="text-3xl font-bold text-black dark:text-white mb-4">
             Revolutionary Features
           </h2>
-          <p className="text-gray-400">
+          <p className="text-gray-600 dark:text-gray-400">
             Everything you need to make informed decisions
           </p>
         </div>
@@ -402,21 +394,21 @@ export default function Landing() {
                          shadow-lg hover:shadow-2xl transition-all duration-300"
             >
               <div
-                className="bg-black rounded-[inherit] p-6 transition-all duration-300
+                className="bg-white dark:bg-black rounded-[inherit] p-6 transition-all duration-300
                            group-hover:scale-105 group-hover:-translate-y-2
                            group-hover:bg-gradient-to-r 
                            group-hover:from-pink-400 
                            group-hover:via-purple-400 
                            group-hover:to-blue-400
-                           group-hover:text-black"
+                           group-hover:text-black dark:group-hover:text-black"
               >
                 <div className="w-12 h-12 bg-transparent rounded-lg flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:border-black">
-                  <f.icon className="w-6 h-6 text-white group-hover:text-black" />
+                  <f.icon className="w-6 h-6 text-black dark:text-white group-hover:text-black" />
                 </div>
-                <h3 className="text-xl font-semibold text-white group-hover:text-black mb-2">
+                <h3 className="text-xl font-semibold text-black dark:text-white group-hover:text-black mb-2">
                   {f.title}
                 </h3>
-                <p className="text-gray-400 group-hover:text-black">
+                <p className="text-gray-600 dark:text-gray-400 group-hover:text-black">
                   {f.description}
                 </p>
               </div>
@@ -428,11 +420,13 @@ export default function Landing() {
       {/* Pricing Section */}
       <section
         ref={pricingRef}
-        className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center"
+        className="py-20 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black transition-colors duration-300 text-center"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-4">Dealer Plans</h2>
-          <p className="text-gray-400">
+          <h2 className="text-3xl font-bold text-black dark:text-white mb-4">
+            Dealer Plans
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
             Choose the perfect plan for your dealership
           </p>
         </div>
@@ -440,9 +434,11 @@ export default function Landing() {
           {pricingPlans.map((p) => (
             <div
               key={p.name}
-              className={`pricing-card bg-black border border-gray-800 rounded-xl shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl ${
-                p.popular ? "ring-2 ring-primary-600" : ""
-              }`}
+              className={`pricing-card bg-white dark:bg-black border border-gray-200 dark:border-gray-800 
+                          rounded-xl shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 
+                          hover:shadow-2xl ${
+                            p.popular ? "ring-2 ring-primary-600" : ""
+                          }`}
             >
               {p.popular && (
                 <div className="bg-primary-600 text-white text-center py-1">
@@ -450,21 +446,23 @@ export default function Landing() {
                 </div>
               )}
               <div className="p-6">
-                <h3 className="text-xl font-semibold text-white mb-4">
+                <h3 className="text-xl font-semibold text-black dark:text-white mb-4">
                   {p.name}
                 </h3>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-white">
-                    ${p.price}
+                  <span className="text-4xl font-bold text-black dark:text-white">
+                    ETB {p.price}
                   </span>
                   {p.price !== "Custom" && (
-                    <span className="text-gray-400">/month</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      /month
+                    </span>
                   )}
                 </div>
-                <ul className="space-y-4 mb-6 text-gray-300">
+                <ul className="space-y-4 mb-6 text-gray-600 dark:text-gray-400">
                   {p.features.map((feat) => (
                     <li key={feat} className="flex items-center">
-                      <CheckCircle2 className="w-5 h-5 text-green-400 mr-2" />{" "}
+                      <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
                       {feat}
                     </li>
                   ))}
@@ -478,35 +476,44 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Reviews Section */}
+      {/* REVIEWS SECTION */}
       <section
         ref={reviewsRef}
-        className="py-20 bg-black border-t border-gray-800 mt-12 pt-8 text-center"
+        className="py-20 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black transition-colors duration-300 text-center"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-4">Reviews</h2>
-          <p className="text-gray-400">What our customers are saying</p>
+          <h2 className="text-3xl font-bold text-black dark:text-white mb-4">
+            Reviews
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            What our customers are saying
+          </p>
         </div>
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4 sm:px-6 lg:px-8">
           {reviews.map((r, i) => (
             <div
               key={i}
-              className="review-card bg-black border border-gray-800 p-6 rounded-xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-2xl"
+              className="review-card bg-white dark:bg-black border border-gray-200 dark:border-gray-800 
+                         p-6 rounded-xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-2xl"
             >
-              <p className="text-gray-300 italic mb-4">“{r.quote}”</p>
-              <div className="flex items-center">
+              <p className="text-gray-700 dark:text-gray-300 italic mb-4">
+                “{r.quote}”
+              </p>
+              <div className="flex items-center justify-center">
                 {[...Array(r.rating)].map((_, idx) => (
                   <Star key={idx} className="w-5 h-5 text-yellow-400" />
                 ))}
               </div>
-              <p className="mt-4 text-white font-semibold">- {r.author}</p>
+              <p className="mt-4 text-black dark:text-white font-semibold">
+                - {r.author}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-black text-gray-400 py-12 border-t border-gray-800 mt-12 pt-8 text-center">
+      <footer className="bg-white dark:bg-black text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800 py-12 mt-12 pt-8 text-center transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
@@ -519,14 +526,14 @@ export default function Landing() {
               </p>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-white">
+              <h4 className="text-lg font-semibold mb-4 text-primary-600 dark:text-white">
                 Features
               </h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2">
                 <li>
                   <button
                     onClick={() => scrollToSection(heroRef)}
-                    className="hover:text-white text-left"
+                    className="hover:text-black dark:hover:text-white text-left"
                   >
                     3D Showroom
                   </button>
@@ -534,7 +541,7 @@ export default function Landing() {
                 <li>
                   <button
                     onClick={() => scrollToSection(featuresRef)}
-                    className="hover:text-white text-left"
+                    className="hover:text-black dark:hover:text-white text-left"
                   >
                     Car Comparison
                   </button>
@@ -542,7 +549,7 @@ export default function Landing() {
                 <li>
                   <button
                     onClick={() => scrollToSection(pricingRef)}
-                    className="hover:text-white text-left"
+                    className="hover:text-black dark:hover:text-white text-left"
                   >
                     Marketplace
                   </button>
@@ -550,48 +557,54 @@ export default function Landing() {
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-white">Company</h4>
-              <ul className="space-y-2 text-gray-400">
+              <h4 className="text-lg font-semibold mb-4 text-black dark:text-white">
+                Company
+              </h4>
+              <ul className="space-y-2">
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <a href="#" className="hover:text-black dark:hover:text-white">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <a href="#" className="hover:text-black dark:hover:text-white">
                     Careers
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <a href="#" className="hover:text-black dark:hover:text-white">
                     Contact
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-white">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
+              <h4 className="text-lg font-semibold mb-4 text-black dark:text-white">
+                Legal
+              </h4>
+              <ul className="space-y-2">
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <a href="#" className="hover:text-black dark:hover:text-white">
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <a href="#" className="hover:text-black dark:hover:text-white">
                     Terms of Service
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <a href="#" className="hover:text-black dark:hover:text-white">
                     Cookie Policy
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-            <p className="text-gray-500">&copy; 2024 MekinaHub. All rights reserved.</p>
+          <div className="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 text-center">
+            <p className="text-gray-500 dark:text-gray-400">
+              &copy; 2024 MekinaHub. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
