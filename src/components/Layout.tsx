@@ -24,7 +24,7 @@ export default function Layout() {
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex items-center justify-between w-full">
-              <div className="flex-1">
+              <div className="flex-1 text-primary-500">
                 <DynamicBreadcrumbs />
               </div>
               <div className="flex-3 mr-4">

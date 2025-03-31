@@ -270,7 +270,7 @@ export default function Landing() {
             <button>
               <Link
                 to="/signin"
-                className="flexpx-9 py-1 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+                className="px-9 py-1 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
               >
                 Sign In
               </Link>
@@ -278,7 +278,11 @@ export default function Landing() {
 
             <ThemeToggle />
           </div>
-          <div className="md:hidden">
+          <div className="md:hidden flex text-primary-700 dark:text-primary-700">
+            
+            <ThemeToggle />
+          
+          
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2">
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -287,6 +291,7 @@ export default function Landing() {
         {isMenuOpen && (
           <div className="md:hidden border-b border-primary-600 bg-white dark:bg-black">
             <div className="px-2 pt-2 pb-3 space-y-1">
+              
               <button
                 onClick={() => scrollToSection(featuresRef)}
                 className="block px-3 py-2 rounded-lg hover:bg-primary-600 text-left w-full"

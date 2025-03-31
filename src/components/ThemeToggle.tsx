@@ -1,21 +1,45 @@
-// ThemeToggle.tsx
-import React from "react";
-import { Sun, Moon } from "lucide-react";
-import { useThemeStore } from "../store/theme";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@mui/material";
+import { useEffect, useState } from "react";
 
-function ThemeToggle() {
-  const isDarkMode = useThemeStore((state) => state.isDarkMode);
-  const toggleTheme = useThemeStore((state) => state.toggleTheme);
+export const ThemeToggle = () => {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (storedTheme) {
+      setTheme(storedTheme);
+      document.documentElement.classList.toggle("dark", storedTheme === "dark");
+    } else {
+      // Check user preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTheme(prefersDark ? "dark" : "light");
+      document.documentElement.classList.toggle("dark", prefersDark);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
+  };
 
   return (
-    <button
+    <Button 
+      variant="text" 
+      size="small" 
       onClick={toggleTheme}
-      className="flex items-center gap-2 p-2 w-full text-left rounded-xl hover:bg-gray-500 hover:text-white"
+      className="rounded-full"
+      aria-label="Toggle theme"
     >
-      {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-      <span className="text-sm">{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
-    </button>
+      {theme === "light" ? (
+        <Moon className="h-5 w-5" />
+      ) : (
+        <Sun className="h-5 w-5" />
+      )}
+    </Button>
   );
-}
+};
 
 export default ThemeToggle;
