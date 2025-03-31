@@ -12,6 +12,9 @@ import DealerAnalytics from './pages/DealerAnalytics';
 import Signup from './pages/Signup';
 import Signin from './pages/Signin';
 
+import Confirmation from './pages/confirmation';
+import CheckEmail from './pages/check _email';
+
 
 function App() {
   return (
@@ -30,6 +33,8 @@ function App() {
       </Route>
       <Route path="/signup" element={<Signup />} />
       <Route path="/signin" element={<Signin />}/>
+      <Route path="/confirmation" element={<Confirmation />} />
+      <Route path="/checkemail" element={<CheckEmail />} />
       </Routes>
     </BrowserRouter>
   );

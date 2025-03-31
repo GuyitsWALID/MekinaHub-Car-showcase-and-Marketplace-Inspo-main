@@ -1,22 +1,35 @@
 import React, { useState } from 'react';
 import { Github, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, redirect } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const Signin = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signin logic here
-    console.log('Signin attempt with:', { email, password, rememberMe });
+    // Sign in using Supabase auth with email and password.
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      console.error('Signin error:', error.message);
+      setErrorMessage(error.message);
+    } else {
+      console.log('Signin successful:', data);
+      navigate('/showroom');
+    }
   };
 
   return (
@@ -43,6 +56,7 @@ const Signin = () => {
         >
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">Sign in to your AutoMarket account</p>
+          {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
         </motion.div>
 
         <motion.div 

@@ -1,23 +1,45 @@
-
 import React, { useState } from 'react';
 import { Github, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Signup attempt with:', { name, email, password });
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      
+      options: {
+        data: {
+          name,
+          role: 'buyer',// default role is buyer
+        },
+        emailRedirectTo: `${window.location.origin}/confirmation` // Replace with your redirect URL
+
+      }
+    });
+    if (error) {
+      console.error('Signup error:', error.message);
+      setErrorMessage(error.message);
+    } else {
+      console.log('Signup successful:', data);
+       navigate('/checkemail'); // Redirect to check email page
+      
+    }
   };
 
   return (
@@ -43,7 +65,10 @@ const Signup = () => {
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create an account</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Join AutoMarket and start exploring premium vehicles</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">
+            Join AutoMarket and start exploring premium vehicles
+          </p>
+          {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
         </motion.div>
 
         <motion.div 
@@ -69,7 +94,9 @@ const Signup = () => {
 
         <div className="relative flex items-center mb-6">
           <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-          <span className="flex-shrink mx-4 text-gray-500 dark:text-gray-400 text-sm">or continue with</span>
+          <span className="flex-shrink mx-4 text-gray-500 dark:text-gray-400 text-sm">
+            or continue with
+          </span>
           <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
         </div>
 
