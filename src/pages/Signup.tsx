@@ -15,6 +15,34 @@ const Signup = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+  const handleGithubSignUp = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/showroom` // Change this to your desired redirect page
+      }
+    });
+  
+    if (error) {
+      console.error('GitHub login error:', error.message);
+      setErrorMessage(error.message);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/showroom` // Change this to your desired redirect page
+      }
+    });
+  
+    if (error) {
+      console.error('Google login error:', error.message);
+      setErrorMessage(error.message);
+    }
+  };
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,11 +105,15 @@ const Signup = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <button className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-black text-white hover:bg-gray-800 transition-all shadow-md">
+          <button 
+          onClick={handleGithubSignUp} 
+          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-black text-white hover:bg-gray-800 transition-all shadow-md">
             <Github size={20} />
             <span className="font-medium">GitHub</span>
           </button>
-          <button className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-md">
+          <button 
+          onClick={handleGoogleSignUp}
+          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-md">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
