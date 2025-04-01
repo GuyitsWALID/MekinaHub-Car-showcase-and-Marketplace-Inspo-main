@@ -94,7 +94,7 @@ const Signin = () => {
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <button 
-          onClick={handleGoogleSignIn}
+          onClick={handleGithubSignIn}
           className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-black text-white hover:bg-gray-800 transition-all shadow-md">
             <Github size={20} />
             <span className="font-medium">GitHub</span>
