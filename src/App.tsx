@@ -14,6 +14,7 @@ import Signin from './pages/Signin';
 
 import Confirmation from './pages/confirmation';
 import CheckEmail from './pages/check _email';
+import AuthCallback from './components/AuthCallback';
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
       <Route path="/signin" element={<Signin />}/>
       <Route path="/confirmation" element={<Confirmation />} />
       <Route path="/checkemail" element={<CheckEmail />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       </Routes>
     </BrowserRouter>
   );
