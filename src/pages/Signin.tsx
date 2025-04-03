@@ -19,9 +19,7 @@ const Signin = () => {
   const handleGithubSignIn = async () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/showroom` // Change this to your desired redirect page
-        }
+        
       });
     
       if (error) {
@@ -33,9 +31,7 @@ const Signin = () => {
     const handleGoogleSignIn = async () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/showroom` // Change this to your desired redirect page
-        }
+        
       });
     
       if (error) {
