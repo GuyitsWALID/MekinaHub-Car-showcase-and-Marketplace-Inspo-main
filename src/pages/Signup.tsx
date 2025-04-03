@@ -18,9 +18,9 @@ const Signup = () => {
   const handleGithubSignUp = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
-      //options: {
-       // redirectTo: `https://wnzulchcttsxbvidkpzt.supabase.co/auth/v1/callback` // Change this to your desired redirect page
-     // }
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback` // Change this to your desired redirect page
+      }
     });
   
     if (error) {
@@ -32,6 +32,9 @@ const Signup = () => {
   const handleGoogleSignUp = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback` // Change this to your desired redirect page
+      }
       
     });
   
