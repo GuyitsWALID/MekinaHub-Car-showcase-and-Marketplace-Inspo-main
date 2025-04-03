@@ -19,7 +19,7 @@ const Signup = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: `${window.location.origin}/showroom` // Change this to your desired redirect page
+        redirectTo: `https://wnzulchcttsxbvidkpzt.supabase.co/auth/v1/callback` // Change this to your desired redirect page
       }
     });
   
