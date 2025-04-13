@@ -11,7 +11,7 @@ import {
   ArrowRight,
   Menu,
   X,
-  Star,
+  Star,Facebook, Twitter, Instagram, Linkedin 
 } from "lucide-react";
 import { useThemeStore } from "../store/theme";
 import MouseFollower from "../components/SplashCursor";
@@ -243,7 +243,7 @@ export default function Landing() {
       <MouseFollower />
 
       {/* Navigation */}
-      <nav className="fixed w-full  backdrop-blur-4xl z-50 border-gray-500">
+      <nav className="fixed w-full  backdrop-blur-md z-50 border-gray-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
           <Link to="/" className="text-2xl text-primary-700 font-bold">
             MekinaHub
@@ -348,7 +348,7 @@ export default function Landing() {
               </div>
             </div>
             <div className="lg:h-[400px] rounded-lg overflow-hidden bg-muted">
-              <CarModel modelUrl="/corvett.glb" color="#ff0000" rotation={30} />
+              <CarModel modelUrl="/corvett.glb"  rotation={30} />
             </div>
           </div>
         </div>
@@ -518,101 +518,83 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-black text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800 py-12 mt-12 pt-8 text-center transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-2xl font-bold text-primary-600 mb-4">
-                MekinaHub
-              </h3>
-              <p>
-                Revolutionizing the automotive marketplace with cutting-edge
-                technology.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-primary-600 dark:text-white">
-                Features
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    onClick={() => scrollToSection(heroRef)}
-                    className="hover:text-black dark:hover:text-white text-left"
-                  >
-                    3D Showroom
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => scrollToSection(featuresRef)}
-                    className="hover:text-black dark:hover:text-white text-left"
-                  >
-                    Car Comparison
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => scrollToSection(pricingRef)}
-                    className="hover:text-black dark:hover:text-white text-left"
-                  >
-                    Marketplace
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-black dark:text-white">
-                Company
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#" className="hover:text-black dark:hover:text-white">
-                    About Us
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-black dark:hover:text-white">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-black dark:hover:text-white">
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-black dark:text-white">
-                Legal
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#" className="hover:text-black dark:hover:text-white">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-black dark:hover:text-white">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-black dark:hover:text-white">
-                    Cookie Policy
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 text-center">
-            <p className="text-gray-500 dark:text-gray-400">
-              &copy; 2024 MekinaHub. All rights reserved.
-            </p>
-          </div>
+<footer className="bg-white dark:bg-black text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800 py-12 mt-12 pt-8 transition-colors duration-300">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
+      <div>
+        <h3 className="text-2xl font-bold text-primary-600 mb-4">MekinaHub</h3>
+        <p>Revolutionizing the automotive marketplace with cutting-edge technology.</p>
+      </div>
+
+      <div>
+        <h4 className="text-lg font-semibold mb-4 text-primary-600 dark:text-white">Features</h4>
+        <ul className="space-y-2">
+          <li>
+            <button
+              onClick={() => scrollToSection(heroRef)}
+              className="hover:text-black dark:hover:text-white text-left"
+            >
+              3D Showroom
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => scrollToSection(featuresRef)}
+              className="hover:text-black dark:hover:text-white text-left"
+            >
+              Car Comparison
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => scrollToSection(pricingRef)}
+              className="hover:text-black dark:hover:text-white text-left"
+            >
+              Marketplace
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 className="text-lg font-semibold mb-4 text-primary-600 dark:text-white">Company</h4>
+        <ul className="space-y-2">
+          <li>
+            <a href="#" className="hover:text-black dark:hover:text-white">About Us</a>
+          </li>
+          <li>
+            <a href="#" className="hover:text-black dark:hover:text-white">Contact</a>
+          </li>
+        </ul>
+      </div>
+
+      <div className="flex md:justify-start justify-center md:items-start items-center flex-col space-y-4">
+        <h4 className="text-lg font-semibold text-primary-600 dark:text-white">Follow Us</h4>
+        <div className="flex space-x-4">
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-primary-600 dark:hover:text-white transition">
+            <Facebook className="w-5 h-5" />
+          </a>
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="hover:text-primary-600 dark:hover:text-white transition">
+            <Twitter className="w-5 h-5" />
+          </a>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-primary-600 dark:hover:text-white transition">
+            <Instagram className="w-5 h-5" />
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-primary-600 dark:hover:text-white transition">
+            <Linkedin className="w-5 h-5" />
+          </a>
         </div>
-      </footer>
+      </div>
+    </div>
+
+    <div className="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 text-center">
+      <p className="text-gray-500 dark:text-gray-400">
+        &copy; 2024 MekinaHub. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>
+
     </div>
   );
 }

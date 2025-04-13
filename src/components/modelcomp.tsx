@@ -1,38 +1,54 @@
-import { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { useTheme } from '@mui/material/styles';
-import { Loader2 } from 'lucide-react';
+
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { Loader2 } from "lucide-react";
 
 interface CarModelProps {
   modelUrl?: string;
-  color?: string;
   rotation?: number;
   className?: string;
+  lightColor?: string; // tint in light mode
+  darkColor?: string;  // tint in dark mode
 }
 
-export default function CarModel({ 
-  modelUrl = '/corvtt.glb',
-  color = '#0f101a',
+export default function CarModel({
+  modelUrl = "/corvtt.glb",
   rotation = 0,
-  className = 'h-[400px] w-full'
+  className = "h-[400px] w-full",
+  lightColor = "#aebbd4",
+  darkColor = "#4e89f5",
 }: CarModelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.classList.contains("dark")
+  );
 
+  // Listen for theme flips
+  useEffect(() => {
+    const onThemeChange = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    window.addEventListener("themeChange", onThemeChange);
+    return () => {
+      window.removeEventListener("themeChange", onThemeChange);
+    };
+  }, []);
+
+  // Build / rebuild scene on props or theme change
   useEffect(() => {
     if (!containerRef.current) return;
+    // clean up any existing canvas
+    containerRef.current.innerHTML = "";
 
-    console.log('Initializing 3D scene with theme:', theme);
-
-    // Scene setup
+    // --- Scene & Background ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(theme.palette.mode === 'dark' ? 0x111111 : 0xffffff);
+    scene.background = new THREE.Color(isDark ? 0x111111 : 0xffffff);
 
-    // Camera setup
+    // --- Camera ---
     const camera = new THREE.PerspectiveCamera(
       60,
       containerRef.current.clientWidth / containerRef.current.clientHeight,
@@ -40,24 +56,26 @@ export default function CarModel({
       1000
     );
     camera.position.set(3, 2, 3);
-    camera.lookAt(0, 0, 0);
 
-    // Renderer setup with optimized settings
-    const renderer = new THREE.WebGLRenderer({ 
+    // --- Renderer ---
+    const renderer = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: "high-performance",
-      alpha: true 
+      alpha: true,
     });
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+    renderer.setSize(
+      containerRef.current.clientWidth,
+      containerRef.current.clientHeight
+    );
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Better quality shadows
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     containerRef.current.appendChild(renderer.domElement);
 
-    // Controls
+    // --- Controls ---
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
@@ -66,141 +84,114 @@ export default function CarModel({
     controls.maxPolarAngle = Math.PI / 2;
     controls.target.set(0, 0, 0);
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-    scene.add(ambientLight);
+    // --- Lights ---
+    scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+    dirLight.position.set(5, 5, 5);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(1024, 1024);
+    scene.add(dirLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-    directionalLight.position.set(5, 5, 5);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 1024; // Reduced for performance
-    directionalLight.shadow.mapSize.height = 1024;
-    scene.add(directionalLight);
+    // --- Grid & Ground (per-theme) ---
+    const gridColor = isDark ? 0x404040 : 0xb3d9ff;
+    scene.add(new THREE.GridHelper(10, 10, gridColor, gridColor));
 
-    // Ground plane with grid - light blue in light mode
-    const gridHelper = new THREE.GridHelper(
-      10, 
-      10, 
-      theme.palette.mode === 'dark' ? 0x404040 : 0xb3d9ff, // Light blue in light mode
-      theme.palette.mode === 'dark' ? 0x404040 : 0xb3d9ff
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(10, 10),
+      new THREE.MeshStandardMaterial({
+        color: isDark ? 0x111111 : 0xe6f3ff,
+        roughness: 0.8,
+        metalness: 0.2,
+      })
     );
-    scene.add(gridHelper);
-
-    const groundGeometry = new THREE.PlaneGeometry(10, 10);
-    const groundMaterial = new THREE.MeshStandardMaterial({ 
-      color: theme.palette.mode === 'dark' ? 0x111111 : 0xe6f3ff, // Lighter blue for ground
-      roughness: 0.8,
-      metalness: 0.2
-    });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = 0;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Load GLB model with optimized settings
-    const loader = new GLTFLoader();
-
-    // Enable texture compression
+    // --- Loader & Model ---
     const manager = new THREE.LoadingManager();
-    manager.onProgress = (url, loaded, total) => {
-      const progress = (loaded / total * 100);
-      setLoadingProgress(progress);
-    };
-    loader.manager = manager;
+    manager.onProgress = (_, loaded, total) =>
+      setLoadingProgress((loaded / total) * 100);
 
-    interface GLTF {
-      scene: THREE.Group;
-    }
-
-    interface ProgressEvent {
-      loaded: number;
-      total: number;
-    }
-
+    const loader = new GLTFLoader(manager);
     loader.load(
       modelUrl,
-      (gltf: GLTF) => {
-        console.log('Model loaded successfully');
+      (gltf: { scene: any; }) => {
         const model = gltf.scene;
 
-        // Calculate bounding box for scaling
+        // auto‑scale & center
         const box = new THREE.Box3().setFromObject(model);
         const size = box.getSize(new THREE.Vector3());
+        const s = 2 / Math.max(size.x, size.y, size.z);
+        model.scale.setScalar(s);
 
-        // Scale model to reasonable size
-        const scale = 2 / Math.max(size.x, size.y, size.z);
-        model.scale.setScalar(scale);
-
-        // Position at origin
-        model.position.set(0, 0, 0);
-
-        // Keep original materials but optimize them
-        model.traverse((child) => {
+        // apply per‑theme tint
+        model.traverse((child: { castShadow: boolean; receiveShadow: boolean; material: THREE.MeshStandardMaterial; }) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
             child.receiveShadow = true;
-
-            // Optimize materials if they exist
-            if (child.material) {
-              (child.material as THREE.Material).needsUpdate = true;
-              (child.material as THREE.Material).side = THREE.FrontSide; // Only render front faces
-            }
+            const mat = child.material as THREE.MeshStandardMaterial;
+            mat.needsUpdate = true;
+            mat.side = THREE.FrontSide;
+            mat.color = new THREE.Color(isDark ? darkColor : lightColor);
           }
         });
 
-        // Apply rotation from props
-        model.rotation.y = rotation * Math.PI / 180;
+        // initial rotation
+        model.rotation.y = (rotation * Math.PI) / 180;
 
         scene.add(model);
         setLoading(false);
       },
-      (progress: ProgressEvent) => {
-        const percent = (progress.loaded / progress.total * 100);
-        setLoadingProgress(percent);
-        console.log('Loading progress:', percent.toFixed(2) + '%');
+      (prog: { loaded: number; total: number; }) => {
+        setLoadingProgress((prog.loaded / prog.total) * 100);
       },
-      (error: ErrorEvent) => {
-        console.error('Error loading model:', error);
+      (err: any) => {
+        console.error("Model load error", err);
         setLoading(false);
       }
     );
 
-    // Optimized animation loop
+    // --- Animation Loop ---
     let frameId: number;
-    function animate() {
+    const animate = () => {
       frameId = requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
-    }
+    };
     animate();
 
-    // Handle window resize
-    function handleResize() {
+    // --- Handle Resize ---
+    const onResize = () => {
       if (!containerRef.current) return;
-      camera.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
+      camera.aspect =
+        containerRef.current.clientWidth / containerRef.current.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    }
-    window.addEventListener('resize', handleResize);
+      renderer.setSize(
+        containerRef.current.clientWidth,
+        containerRef.current.clientHeight
+      );
+    };
+    window.addEventListener("resize", onResize);
 
+    // --- Cleanup ---
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", onResize);
       cancelAnimationFrame(frameId);
       containerRef.current?.removeChild(renderer.domElement);
       renderer.dispose();
     };
-  }, [color, rotation, theme, modelUrl]);
+  }, [modelUrl, rotation, isDark, lightColor, darkColor]);
 
   return (
-    <div className="relative" style={{ height: '100%', width: '100%' }}>
+    <div className="relative" style={{ height: "100%", width: "100%" }}>
       <div ref={containerRef} className={className} />
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
-              Loading model... {loadingProgress.toFixed(0)}%
+              Loading model… {loadingProgress.toFixed(0)}%
             </p>
           </div>
         </div>
