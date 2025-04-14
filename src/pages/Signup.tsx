@@ -95,7 +95,7 @@ const Signup = () => {
         >
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create an account</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Join AutoMarket and start exploring premium vehicles
+            Join the biggest car community with 3d car showroom and car marketplace
           </p>
           {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
         </motion.div>

@@ -13,6 +13,7 @@ import {
   GitCompare,
   GitCompareIcon,
   Settings,
+  CarFrontIcon,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
@@ -86,7 +87,7 @@ const AppSidebar: React.FC = () => {
               collapsed && "justify-center w-full"
             )}
           >
-            <Home className="w-6 h-6 text-primary-600" />
+            <CarFrontIcon className="w-6 h-6 text-primary-600" />
             {!collapsed && <span className="text-xl font-bold">MekinaHub</span>}
           </Link>
           <Button
@@ -172,26 +173,12 @@ const AppSidebar: React.FC = () => {
         {/* Divider + User footer */}
         <div className="border-t border-gray-200 dark:border-gray-800 p-4">
           <div className={cn("flex items-center", collapsed && "justify-center")}>
-            {user && (
-              <Link
-                to="/profile"
-                className="flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors"
-              >
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <UserIcon className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 p-1 text-white" />
-                )}
-                {!collapsed && (
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {user.name}
-                  </span>
-                )}
-              </Link>
+            <UserIcon className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+            {!collapsed && (
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium">{user?.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+              </div>
             )}
           </div>
         </div>

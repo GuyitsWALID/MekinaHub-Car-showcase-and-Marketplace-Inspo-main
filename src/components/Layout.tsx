@@ -23,10 +23,8 @@ export default function Layout() {
           <header className="bg-background h-16 flex items-center gap-4 px-4 border-b shadow-md">
            
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <div className="flex items-center justify-between w-full">
-              <div className="flex-1 text-primary-500">
-                <DynamicBreadcrumbs />
-              </div>
+            <div className="flex items-center justify-end w-full">
+              
               <div className="flex-3 mr-4">
                 {showChatBot ? (
                   <ChatBotUI />
