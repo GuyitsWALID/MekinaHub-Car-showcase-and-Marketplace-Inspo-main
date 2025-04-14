@@ -25,11 +25,7 @@ const DynamicBreadcrumbs: React.FC = () => {
     <Breadcrumb>
       <BreadcrumbList>
         {/* Always include the Home breadcrumb */}
-        <BreadcrumbItem>
-          <Link to="/">
-            Home
-          </Link>
-        </BreadcrumbItem>
+        
         {pathnames.map((segment, index) => {
           // Build the cumulative path for each breadcrumb
           const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;

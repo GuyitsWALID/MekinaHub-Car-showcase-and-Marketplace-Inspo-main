@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { AppSidebar } from "../components/app-sidebar";
+import AppSidebar from "../components/app-sidebar";
 import DynamicBreadcrumbs from "../components/DynamicBreadcrumbs";
 import { Separator } from "../components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "../components/ui/sidebar";
@@ -21,7 +21,7 @@ export default function Layout() {
         <div className="flex flex-1 flex-col">
           {/* Separate Header (Not Sticky) */}
           <header className="bg-background h-16 flex items-center gap-4 px-4 border-b shadow-md">
-            <SidebarTrigger className="-ml-1" />
+           
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex items-center justify-between w-full">
               <div className="flex-1 text-primary-500">
