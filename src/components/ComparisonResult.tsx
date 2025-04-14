@@ -1,5 +1,4 @@
-// components/ComparisonResult.tsx
-"use client";
+
 import { CarProps } from "../types";
 
 interface ResultProps {

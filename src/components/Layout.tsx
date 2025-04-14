@@ -20,9 +20,9 @@ export default function Layout() {
         {/* Main Content Area */}
         <div className="flex flex-1 flex-col">
           {/* Separate Header (Not Sticky) */}
-          <header className="bg-background h-16 flex items-center gap-4 px-4 border-b shadow-md">
+          <header className="bg-background h-14 flex items-center gap-4 px-4 border-b shadow-sm">
            
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            
             <div className="flex items-center justify-end w-full">
               
               <div className="flex-3 mr-4">

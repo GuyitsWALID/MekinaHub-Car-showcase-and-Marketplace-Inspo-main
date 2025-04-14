@@ -26,16 +26,35 @@ export const deleteSearchParams = (type: string): string => {
 
 export async function fetchCars(filters: FilterProps): Promise<any> {
   const { make, year, model } = filters;
+
+  // Check if there is at least one valid filter value
+  if (!make && !year && !model) {
+    throw new Error("At least one filter value must be provided to fetch cars.");
+  }
+
   const headers: HeadersInit = {
     "X-RapidAPI-Key": import.meta.env.VITE_RAPID_API_KEY || "523d10003amshea14e4dbb120c59p1ebaefjsn0955757c2468",
     "X-RapidAPI-Host": "cars-by-api-ninjas.p.rapidapi.com",
   };
 
-  const response = await fetch(
-    `https://cars-by-api-ninjas.p.rapidapi.com/v1/cars?make=${make || ""}&year=${year || ""}&model=${model || ""}`,
-    { headers }
-  );
+  const params = new URLSearchParams();
+  if (make) {
+    params.append("make", make);
+  }
+  if (year) {
+    params.append("year", year.toString());
+  }
+  if (model) {
+    params.append("model", model);
+  }
 
+  const url = `https://cars-by-api-ninjas.p.rapidapi.com/v1/cars?${params.toString()}`;
+
+  const response = await fetch(url, { headers });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch cars: ${response.status} ${response.statusText}`);
+  }
+  
   const result = await response.json();
   return result;
 }

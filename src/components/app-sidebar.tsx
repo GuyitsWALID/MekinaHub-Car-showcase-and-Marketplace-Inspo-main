@@ -14,6 +14,7 @@ import {
   GitCompareIcon,
   Settings,
   CarFrontIcon,
+  BarChart2
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
@@ -27,7 +28,7 @@ const navTopItems = [
   { icon: Store, label: "Marketplace", path: "/marketplace" },
   { icon: Users, label: "Messages", path: "/messages" },
   { icon: ListBulletIcon, label: "My Listings", path: "/dealerdashboard" },
-  { icon: GitCompare, label: "Analytics", path: "/dealeranalytics" },
+  { icon: BarChart2, label: "Analytics", path: "/dealeranalytics" },
 ];
 
 const navBottomItems = [
@@ -79,7 +80,7 @@ const AppSidebar: React.FC = () => {
         )}
       >
         {/* Header: Logo + collapse button */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-800">
           <Link
             to="/"
             className={cn(
@@ -173,11 +174,11 @@ const AppSidebar: React.FC = () => {
         {/* Divider + User footer */}
         <div className="border-t border-gray-200 dark:border-gray-800 p-4">
           <div className={cn("flex items-center", collapsed && "justify-center")}>
-            <UserIcon className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+            <UserIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" />
             {!collapsed && (
               <div className="ml-3 flex-1">
                 <p className="text-sm font-medium">{user?.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{user?.email}</p>
               </div>
             )}
           </div>
