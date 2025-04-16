@@ -174,6 +174,8 @@ const AppSidebar: React.FC = () => {
         {/* Divider + User footer */}
         <div className="border-t border-gray-200 dark:border-gray-800 p-4">
           <div className={cn("flex items-center", collapsed && "justify-center")}>
+            <button
+            >
             <UserIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" />
             {!collapsed && (
               <div className="ml-3 flex-1">
@@ -181,6 +183,8 @@ const AppSidebar: React.FC = () => {
                 <p className="text-xs text-gray-600 dark:text-gray-400">{user?.email}</p>
               </div>
             )}
+            </button>
+            
           </div>
         </div>
       </aside>

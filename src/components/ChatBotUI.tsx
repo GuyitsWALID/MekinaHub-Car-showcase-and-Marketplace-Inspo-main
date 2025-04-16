@@ -68,7 +68,7 @@ export default function ChatWidget() {
     const systemPrompt = `You are a chatbot that remembers past interactions to provide relevant responses. However, you should not explicitly reveal that you remember past messages. Respond concisely, within 30 words, unless the user requests more details.`;
   
     try {
-      const response = await fetch('https://superb-fernanda-nextflow-37cec34f.koyeb.app/o3mini', {
+      const response = await fetch('https://superb-fernanda-nextflow-37cec34f.koyeb.app/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: `Query: ${input}\nMemory:\n${formattedMessages}\nSystem Instructions:\n${systemPrompt}` }),
