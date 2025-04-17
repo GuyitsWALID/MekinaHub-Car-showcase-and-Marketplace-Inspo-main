@@ -9,12 +9,12 @@ import Messages from './pages/Messages';
 import Notifications from './pages/Notifications';
 import DealerDashboard from './pages/DealerDashboard';
 import DealerAnalytics from './pages/DealerAnalytics';
-import Signup from './pages/Signup';
-import Signin from './pages/Signin';
+
 
 import Confirmation from './pages/confirmation';
 import CheckEmail from './pages/check _email';
 import AuthCallback from './components/AuthCallback';
+import Auth from './pages/Auth';
 
 
 function App() {
@@ -32,8 +32,7 @@ function App() {
           <Route path="/dealerdashboard" element={<DealerDashboard />} />
           <Route path="/dealeranalytics" element={<DealerAnalytics />} />
       </Route>
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/signin" element={<Signin />}/>
+      <Route path="/auth" element={<Auth />} />
       <Route path="/confirmation" element={<Confirmation />} />
       <Route path="/checkemail" element={<CheckEmail />} />
       <Route path="/auth/callback" element={<AuthCallback />} />

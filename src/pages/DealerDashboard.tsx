@@ -370,6 +370,7 @@ export default function DealerDashboard() {
                 />
               </div>
               <button
+                onClick= {() => setAddDetails('')}
                 type="submit"
                 className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700"
               >

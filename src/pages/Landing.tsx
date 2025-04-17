@@ -269,7 +269,7 @@ export default function Landing() {
             </button>
             <button>
               <Link
-                to="/signin"
+                to="/auth"
                 className="px-9 py-1 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
               >
                 Sign In
@@ -311,7 +311,7 @@ export default function Landing() {
                 Reviews
               </button>
               <Link
-                to="/signin"
+                to="/auth"
                 className="block px-5 py-2 mt-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
               >
                 Sign In
@@ -334,7 +334,7 @@ export default function Landing() {
                 showroom. Compare, customize, and connect with verified dealers.
               </p>
               <div className="flex gap-4">
-                <Link to="/signup">
+                <Link to="/auth">
                   <Button size="large" className="font-sans gap-2">
                     Get Started
                     <ArrowRight className="h-5 w-5" />

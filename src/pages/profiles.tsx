@@ -5,8 +5,8 @@ import { supabase } from "../supabaseClient";
 
 export default function Profile() {
   const { user, isLoading } = useAuth();
-  const [fullName, setFullName] = useState(user?.full_name || "");
-  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || "");
+  const [fullName, setFullName] = useState(user?.name || "");
+  const [avatarUrl, setAvatarUrl] = useState(user?.email || "");
   const [saving, setSaving] = useState(false);
 
   const saveProfile = async () => {
