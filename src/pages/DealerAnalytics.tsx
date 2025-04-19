@@ -1,29 +1,108 @@
-import React from 'react';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 import BlurText from '../components/BlurText';
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+
+interface Stat {
+  title: string;
+  value: number | string;
+}
+
+interface Monthly {
+  month: string;
+  views: number;
+}
 
 export default function DealerAnalytics() {
-  // Sample analytics statistics data (replace with real data)
-  const stats = [
-    { id: 1, title: 'Total Listings', value: '150' },
-    { id: 2, title: 'Total Sales', value: '45' },
-    { id: 3, title: 'Leads Generated', value: '230' },
-    { id: 4, title: 'Conversion Rate', value: '19%' },
-  ];
+  const [stats, setStats] = useState<Stat[]>([]);
+  const [chartData, setChartData] = useState<Monthly[]>([]);
 
-  // Dummy chart data for monthly sales (replace with real data)
-  const chartData = [
-    { month: 'Jan', sales: 5 },
-    { month: 'Feb', sales: 8 },
-    { month: 'Mar', sales: 10 },
-    { month: 'Apr', sales: 7 },
-    { month: 'May', sales: 12 },
-    { month: 'Jun', sales: 9 },
-  ];
+  const loadStats = async () => {
+    // Fetch counts
+    const listingsRes = await supabase
+      .from('listings')
+      .select('*', { count: 'exact' });
+    const favoritesRes = await supabase
+      .from('favorites')
+      .select('*', { count: 'exact' });
+    const leadsRes = await supabase
+      .from('messages')
+      .select('*', { count: 'exact' });
+
+    const totalListings = listingsRes.count ?? 0;
+    const totalFavorites = favoritesRes.count ?? 0;
+    const totalLeads = leadsRes.count ?? 0;
+
+    setStats([
+      { title: 'Total Listings', value: totalListings },
+      { title: 'Total Favorites', value: totalFavorites },
+      { title: 'Leads Generated', value: totalLeads }
+    ]);
+
+    // Fetch view events for chart
+    const { data } = await supabase
+      .from('post_engagements')
+      .select('created_at')
+      .eq('engagement_type', 'view')
+      .order('created_at', { ascending: true });
+
+    if (data) {
+      const byMonth = data.reduce((acc: Record<string, number>, row) => {
+        const month = new Date(row.created_at).toLocaleString('en-US', { month: 'short' });
+        acc[month] = (acc[month] || 0) + 1;
+        return acc;
+      }, {});
+
+      setChartData(
+        Object.entries(byMonth).map(([month, views]) => ({ month, views }))
+      );
+    }
+  };
+
+  useEffect(() => {
+    loadStats();
+
+    // Realtime subscription for new messages (leads)
+    const messagesChannel = supabase
+      .channel('messages-channel')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        () => {
+          loadStats();
+        }
+      )
+      .subscribe();
+
+    // Realtime subscription for view events
+    const viewsChannel = supabase
+      .channel('views-channel')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'post_engagements', filter: 'engagement_type=eq.view' },
+        () => {
+          loadStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(viewsChannel);
+    };
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <BlurText
           text="Dealer Analytics"
@@ -34,31 +113,40 @@ export default function DealerAnalytics() {
         />
       </div>
 
-      {/* Analytics Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => (
-          <div key={stat.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform duration-300">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-            <div className="text-gray-600 dark:text-gray-400">{stat.title}</div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {stats.map((s) => (
+          <div
+            key={s.title}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform duration-300"
+          >
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+              {s.value}
+            </div>
+            <div className="text-gray-600 dark:text-gray-400">{s.title}</div>
           </div>
         ))}
       </div>
 
-      {/* Chart Section */}
+      {/* Monthly Views Chart */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Monthly Sales</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          Growth in Views
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" stroke="#374151" />
-            <YAxis stroke="#374151" />
+            <XAxis dataKey="month" />
+            <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="sales" stroke="#3B82F6" activeDot={{ r: 8 }} />
+            <Line type="monotone" dataKey="views" activeDot={{ r: 8 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
 }
-

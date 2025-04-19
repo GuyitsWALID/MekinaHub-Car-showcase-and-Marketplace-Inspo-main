@@ -32,6 +32,7 @@ const Auth: React.FC = () => {
     setPassword('');
     setIsSignUp(prev => !prev);
   };
+  
 
   const handleOAuth = async (provider: 'github' | 'google') => {
     const { error } = await supabase.auth.signInWithOAuth({
