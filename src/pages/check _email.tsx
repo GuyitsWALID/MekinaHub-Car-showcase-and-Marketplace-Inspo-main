@@ -50,7 +50,7 @@ const CheckEmail = () => {
           transition={{ delay: 0.4, duration: 0.5 }}
           className="mt-6"
         >
-          <Link to="/signin" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+          <Link to="/auth" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
             Back to Sign In
           </Link>
         </motion.div>

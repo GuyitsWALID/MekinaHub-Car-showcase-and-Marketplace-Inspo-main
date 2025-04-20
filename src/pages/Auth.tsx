@@ -26,6 +26,61 @@ const Auth: React.FC = () => {
     setStrength(score);
   }, [password]);
 
+  // Add auth state change listener
+  useEffect(() => {
+    // Set up auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        // When a user signs in (including after OAuth redirect)
+        if (event === 'SIGNED_IN' && session?.user) {
+          try {
+            // Check if user already exists in the users table
+            const { data: existingUser, error: fetchError } = await supabase
+              .from('users')
+              .select('id')
+              .eq('id', session.user.id)
+              .single();
+
+            if (fetchError && fetchError.code !== 'PGRST116') {
+              console.error('Error checking existing user:', fetchError);
+              return;
+            }
+
+            // If user doesn't exist in the users table, insert them
+            if (!existingUser) {
+              const userData = {
+                id: session.user.id,
+                full_name: session.user.user_metadata.full_name || 
+                           session.user.user_metadata.name || 
+                           'User',
+                email: session.user.email,
+                created_at: new Date().toISOString()
+              };
+
+              const { error: insertError } = await supabase
+                .from('users')
+                .insert([userData]);
+
+              if (insertError) {
+                console.error('Error inserting OAuth user:', insertError);
+              }
+            }
+
+            // Navigate to showroom after successful sign-in
+            navigate('/showroom');
+          } catch (err) {
+            console.error('Error in auth state change:', err);
+          }
+        }
+      }
+    );
+
+    // Clean up the listener
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   const togglePasswordVisibility = () => setShowPassword(prev => !prev);
   const toggleMode = () => {
     setErrorMessage(null);
@@ -33,28 +88,59 @@ const Auth: React.FC = () => {
     setIsSignUp(prev => !prev);
   };
   
-
+  // Fixed OAuth handler
   const handleOAuth = async (provider: 'github' | 'google') => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/showroom` }
-    });
-    if (error) setErrorMessage(error.message);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/showroom` }
+      });
+
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      // Since OAuth redirects, we don't need to handle user data here
+      // The user will be redirected to the specified URL
+    } catch (err) {
+      setErrorMessage('An error occurred during authentication');
+      console.error(err);
+    }
   };
 
+  // Fixed SignUp handler
   const handleSubmitSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, role: 'buyer' },
-        emailRedirectTo: `${window.location.origin}/confirmation`
-      }
+    
+    // Assuming 'name' is the variable holding the user's full name
+    const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+            data: { full_name: name, role: 'buyer' }, // Use 'name' variable for full_name
+            emailRedirectTo: `${window.location.origin}/`
+        }
     });
-    if (error) setErrorMessage(error.message);
-    else navigate('/checkemail');
-  };
+
+    if (signUpError) {
+        setErrorMessage(signUpError.message);
+        return;
+    }
+
+    // Insert full_name and email into the users table
+    if (user) {
+        const { error: insertError } = await supabase
+            .from('users')
+            .insert([{ full_name: name, email: user.email }]); // Use 'name' variable for full_name
+
+        if (insertError) {
+            setErrorMessage(insertError.message);
+        } else {
+            navigate('/checkemail'); // Redirect after successful insertion
+        }
+    }
+};
 
   const handleSubmitSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +170,7 @@ const Auth: React.FC = () => {
   return (
     <div className="
         flex min-h-screen w-full justify-center items-center
-        bg-gradient-to-br from-blue-50 to-blue-200
+        bg-gradient-to-br from-blue-500 to-blue-200
         dark:from-gray-800 dark:to-gray-900
         relative overflow-hidden p-4
       ">
@@ -349,6 +435,7 @@ const Auth: React.FC = () => {
               </div>
 
               <motion.button
+                onClick={handleSubmitSignIn}
                 type="submit"
                 className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-md transition flex items-center justify-center gap-2"
                 whileHover={{ scale: 1.03 }}

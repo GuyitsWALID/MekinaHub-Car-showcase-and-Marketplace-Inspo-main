@@ -41,7 +41,7 @@ const navTopItems = [
 ];
 
 const navBottomItems = [
-  { icon: Settings, label: "Settings", path: "/settings" },
+  
   { icon: Bell, label: "Notifications", path: "/notifications" },
 ];
 
@@ -69,22 +69,105 @@ const AppSidebar: React.FC = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching user profile for ID:', user?.id);
+      
+      if (!user?.id) {
+        console.error('No user ID available');
+        return;
+      }
+
+      // First try to find user by ID
+      let { data, error } = await supabase
         .from('users')
         .select('full_name, email, avatar_url')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
 
-      if (error) {
-        console.error('Error fetching user profile:', error);
+      // If not found by ID, try to find by email
+      if (error && error.code === 'PGRST116' && user.email) {
+        console.log('User not found by ID, trying to find by email:', user.email);
+        
+        const { data: emailData, error: emailError } = await supabase
+          .from('users')
+          .select('full_name, email, avatar_url')
+          .eq('email', user.email)
+          .single();
+          
+        if (!emailError && emailData) {
+          data = emailData;
+          error = null;
+          console.log('User found by email');
+        }
+      }
+
+      // If still not found, create a new user record
+      if ((error && error.code === 'PGRST116') || !data) {
+        console.log('User not found in database, creating new record');
+        
+        const newUserData = {
+          id: user.id,
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
+          email: user.email,
+          avatar_url: user.user_metadata?.avatar_url || '',
+          created_at: new Date().toISOString()
+        };
+        
+        console.log('Inserting new user data:', newUserData);
+        
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([newUserData]);
+          
+        if (insertError) {
+          console.error('Error creating user profile:', insertError);
+          
+          // Fallback to auth metadata if insertion fails
+          setUserData({
+            full_name: newUserData.full_name,
+            email: newUserData.email || '',
+            avatar_url: newUserData.avatar_url
+          });
+        } else {
+          // Set the user data after successful creation
+          setUserData({
+            full_name: newUserData.full_name,
+            email: newUserData.email || '',
+            avatar_url: newUserData.avatar_url
+          });
+          console.log('Created and set new user profile');
+        }
         return;
       }
 
       if (data) {
+        console.log('User profile data retrieved:', data);
         setUserData(data);
+      } else {
+        console.log('No user data found in the database');
+        
+        // Fallback to auth metadata if available
+        if (user.user_metadata) {
+          const fallbackData = {
+            full_name: user.user_metadata.full_name || user.user_metadata.name || 'User',
+            email: user.email || '',
+            avatar_url: user.user_metadata.avatar_url || ''
+          };
+          
+          setUserData(fallbackData);
+          console.log('Using auth metadata as fallback:', fallbackData);
+        }
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      
+      // Final fallback - use whatever we can get from auth
+      if (user) {
+        setUserData({
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
+          email: user.email || '',
+          avatar_url: user.user_metadata?.avatar_url || ''
+        });
+      }
     }
   };
 
