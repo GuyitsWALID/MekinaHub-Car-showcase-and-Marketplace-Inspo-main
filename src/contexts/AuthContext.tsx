@@ -1,111 +1,111 @@
-import React, {
-    createContext,
-    useContext,
-    useState,
-    ReactNode,
-    useEffect,
-  } from "react";
-  
-  
-  export interface User {
-    id: string;
-    name: string;
-    email: string;
-    avatarUrl?: string;
-  }
-  
-  interface AuthContextType {
-    user: User | null;
-    isLoading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    register: (data: { name: string; email: string; password: string }) => Promise<void>;
-    logout: () => void;
-  }
-  
- 
-  const AuthContext = createContext<AuthContextType>({
-    user: null,
-    isLoading: true,
-    login: async () => {},
-    register: async () => {},
-    logout: () => {},
-  });
-  
-  
-  //
-  export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-  
-    // On mount: try to rehydrate from localStorage
-    useEffect(() => {
-      const token = localStorage.getItem("auth_token");
-      const stored = localStorage.getItem("auth_user");
-      if (token && stored) {
-        setUser(JSON.parse(stored));
-        // e.g. axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      }
-      setIsLoading(false);
-    }, []);
-  
-    const login = async (email: string, password: string) => {
-      setIsLoading(true);
-      try {
-        const resp = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        if (!resp.ok) throw new Error("Login failed");
-        const { token, user: userData } = (await resp.json()) as {
-          token: string;
-          user: User;
-        };
-        localStorage.setItem("auth_token", token);
-        localStorage.setItem("auth_user", JSON.stringify(userData));
-        setUser(userData);
-        // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    const register = async (data: { name: string; email: string; password: string }) => {
-      setIsLoading(true);
-      try {
-        const resp = await fetch("/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!resp.ok) throw new Error("Registration failed");
-        const { token, user: userData } = (await resp.json()) as {
-          token: string;
-          user: User;
-        };
-        localStorage.setItem("auth_token", token);
-        localStorage.setItem("auth_user", JSON.stringify(userData));
-        setUser(userData);
-        // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    const logout = () => {
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("auth_user");
-      setUser(null);
-      // delete axios.defaults.headers.common["Authorization"];
-    };
-  
-    return (
-      <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
-        {children}
-      </AuthContext.Provider>
-    );
-  };
-  
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { Session, User } from '@supabase/supabase-js';
 
-  export const useAuth = () => useContext(AuthContext);
-  
+// Make sure signOut is included in the interface
+export interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<{
+    error: Error | null;
+    data: Session | null;
+  }>;
+  signUp: (email: string, password: string, userData: any) => Promise<{
+    error: Error | null;
+    data: Session | null;
+  }>;
+  signOut: () => Promise<void>; // Add this line
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      return { data: data.session, error };
+    } catch (error) {
+      return { data: null, error: error as Error };
+    }
+  };
+
+  const signUp = async (email: string, password: string, userData: any) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData,
+        },
+      });
+
+      // If signup is successful, create a user profile
+      if (data.user && !error) {
+        await supabase.from('users').insert({
+          id: data.user.id,
+          email: email,
+          full_name: userData.full_name,
+          created_at: new Date(),
+        });
+      }
+
+      return { data: data.session, error };
+    } catch (error) {
+      return { data: null, error: error as Error };
+    }
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const value = {
+    user,
+    session,
+    loading,
+    signIn,
+    signUp,
+    signOut, // Make sure this is included
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

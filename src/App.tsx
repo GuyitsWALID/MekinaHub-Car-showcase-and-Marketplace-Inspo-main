@@ -15,6 +15,7 @@ import Confirmation from './pages/confirmation';
 import CheckEmail from './pages/check _email';
 import AuthCallback from './components/AuthCallback';
 import Auth from './pages/Auth';
+import Setting from './pages/Setting';
 
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/dealerdashboard" element={<DealerDashboard />} />
           <Route path="/dealeranalytics" element={<DealerAnalytics />} />
+          <Route path="/settings" element={<Setting />} />
       </Route>
       <Route path="/auth" element={<Auth />} />
       <Route path="/confirmation" element={<Confirmation />} />

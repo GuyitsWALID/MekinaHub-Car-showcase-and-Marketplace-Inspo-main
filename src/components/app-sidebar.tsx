@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Store,
   Car,
@@ -21,6 +21,15 @@ import { Button } from "./ui/button";
 import { useAuth } from "../contexts/AuthContext";
 import { useIsMobile } from "../hooks/use-mobile";
 import { ListBulletIcon } from "@radix-ui/react-icons";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "./ui/dropdown-menu";
+import { supabase } from "../supabaseClient";
 
 const navTopItems = [
   { icon: Car, label: "Show Room", path: "/showroom" },
@@ -39,14 +48,68 @@ const navBottomItems = [
 const AppSidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const [userData, setUserData] = useState<{
+    full_name: string;
+    email: string;
+    avatar_url: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isMobile) setCollapsed(true);
   }, [isMobile]);
 
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('full_name, email, avatar_url')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+
+      if (data) {
+        setUserData(data);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
+
   const toggle = () => setCollapsed((c) => !c);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (userData?.full_name) {
+      return userData.full_name
+        .split(' ')
+        .map(name => name[0])
+        .join('')
+        .toUpperCase();
+    }
+    return 'U';
+  };
 
   return (
     <>
@@ -171,22 +234,73 @@ const AppSidebar: React.FC = () => {
           </nav>
         </div>
 
-        {/* Divider + User footer */}
-        <div className="border-t border-gray-200 dark:border-gray-800 p-4">
-          <div className={cn("flex items-center", collapsed && "justify-center")}>
-            <button
-            >
-            <UserIcon className="h-6 w-6 text-gray-500 dark:text-gray-400"
- />
-            {!collapsed && (
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium">{user?.name}</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{user?.email}</p>
+        {/* Modernized User footer */}
+        <div className="border-t border-gray-200 dark:border-gray-800 p-3">
+          {collapsed ? (
+            <div className="flex justify-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-9 w-9 rounded-full" size="icon">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={userData?.avatar_url || ''} alt={userData?.full_name || 'User'} />
+                      <AvatarFallback className="bg-primary-100 text-primary-600">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="flex flex-col space-y-1 p-2">
+                    <p className="text-sm font-medium">{userData?.full_name || 'User'}</p>
+                    <p className="text-xs text-gray-500 truncate">{userData?.email || ''}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-10 w-10 rounded-full p-0" size="icon">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={userData?.avatar_url || ''} alt={userData?.full_name || 'User'} />
+                      <AvatarFallback className="bg-primary-100 text-primary-600">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="flex flex-col">
+                <p className="text-sm font-medium truncate">{userData?.full_name || 'User'}</p>
+                <p className="text-xs text-gray-500 truncate">{userData?.email || ''}</p>
               </div>
-            )}
-            </button>
-            
-          </div>
+            </div>
+          )}
         </div>
       </aside>
     </>
