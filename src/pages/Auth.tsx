@@ -28,16 +28,24 @@ const Auth: React.FC = () => {
 
   // Add auth state change listener
   useEffect(() => {
+    console.log('Setting up auth state change listener');
+    
+    // Check if we're on the auth page after a redirect
+    const currentUrl = window.location.href;
+    console.log('Current URL:', currentUrl);
+    
     // Set up auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
         // When a user signs in (including after OAuth redirect)
         if (event === 'SIGNED_IN' && session?.user) {
           try {
             // Check if user already exists in the users table
             const { data: existingUser, error: fetchError } = await supabase
               .from('users')
-              .select('id')
+              .select('id, role')
               .eq('id', session.user.id)
               .single();
 
@@ -54,6 +62,7 @@ const Auth: React.FC = () => {
                            session.user.user_metadata.name || 
                            'User',
                 email: session.user.email,
+                role: 'buyer', // Default role
                 created_at: new Date().toISOString()
               };
 
@@ -93,7 +102,7 @@ const Auth: React.FC = () => {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-       
+        options: { redirectTo: `${window.location.origin}/showroom` }
       });
 
       if (error) {
