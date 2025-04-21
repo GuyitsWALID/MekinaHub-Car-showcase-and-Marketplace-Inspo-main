@@ -5,22 +5,21 @@ import {
   Car,
   Users,
   Bell,
-  Home,
   Menu,
   X,
-  User as UserIcon,
   LogOut,
-  GitCompare,
   GitCompareIcon,
   Settings,
   CarFrontIcon,
-  BarChart2
+  BarChart2,
+  List,
+  ListChecks,
+  ListChecksIcon
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
 import { useAuth } from "../contexts/AuthContext";
 import { useIsMobile } from "../hooks/use-mobile";
-import { ListBulletIcon } from "@radix-ui/react-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { 
   DropdownMenu, 
@@ -31,17 +30,21 @@ import {
 } from "./ui/dropdown-menu";
 import { supabase } from "../supabaseClient";
 
-const navTopItems = [
+// Common navigation items for all users
+const commonNavItems = [
   { icon: Car, label: "Show Room", path: "/showroom" },
   { icon: GitCompareIcon, label: "Compare", path: "/compare" },
   { icon: Store, label: "Marketplace", path: "/marketplace" },
   { icon: Users, label: "Messages", path: "/messages" },
-  { icon: ListBulletIcon, label: "My Listings", path: "/dealerdashboard" },
+];
+
+// Dealer-specific navigation items
+const dealerNavItems = [
+  { icon: ListChecksIcon, label: "My Listings", path: "/dealerdashboard" },
   { icon: BarChart2, label: "Analytics", path: "/dealeranalytics" },
 ];
 
 const navBottomItems = [
-  
   { icon: Bell, label: "Notifications", path: "/notifications" },
 ];
 
@@ -55,6 +58,7 @@ const AppSidebar: React.FC = () => {
     full_name: string;
     email: string;
     avatar_url: string;
+    role?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -79,7 +83,7 @@ const AppSidebar: React.FC = () => {
       // First try to find user by ID
       let { data, error } = await supabase
         .from('users')
-        .select('full_name, email, avatar_url')
+        .select('full_name, email, avatar_url, role')
         .eq('id', user.id)
         .single();
 
@@ -89,7 +93,7 @@ const AppSidebar: React.FC = () => {
         
         const { data: emailData, error: emailError } = await supabase
           .from('users')
-          .select('full_name, email, avatar_url')
+          .select('full_name, email, avatar_url, role')
           .eq('email', user.email)
           .single();
           
@@ -109,6 +113,7 @@ const AppSidebar: React.FC = () => {
           full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
           email: user.email,
           avatar_url: user.user_metadata?.avatar_url || '',
+          role: 'buyer', // Default role is buyer
           created_at: new Date().toISOString()
         };
         
@@ -125,14 +130,16 @@ const AppSidebar: React.FC = () => {
           setUserData({
             full_name: newUserData.full_name,
             email: newUserData.email || '',
-            avatar_url: newUserData.avatar_url
+            avatar_url: newUserData.avatar_url,
+            role: 'buyer'
           });
         } else {
           // Set the user data after successful creation
           setUserData({
             full_name: newUserData.full_name,
             email: newUserData.email || '',
-            avatar_url: newUserData.avatar_url
+            avatar_url: newUserData.avatar_url,
+            role: 'buyer'
           });
           console.log('Created and set new user profile');
         }
@@ -150,7 +157,8 @@ const AppSidebar: React.FC = () => {
           const fallbackData = {
             full_name: user.user_metadata.full_name || user.user_metadata.name || 'User',
             email: user.email || '',
-            avatar_url: user.user_metadata.avatar_url || ''
+            avatar_url: user.user_metadata.avatar_url || '',
+            role: 'buyer' // Default role
           };
           
           setUserData(fallbackData);
@@ -165,7 +173,8 @@ const AppSidebar: React.FC = () => {
         setUserData({
           full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
           email: user.email || '',
-          avatar_url: user.user_metadata?.avatar_url || ''
+          avatar_url: user.user_metadata?.avatar_url || '',
+          role: 'buyer' // Default role
         });
       }
     }
@@ -192,6 +201,18 @@ const AppSidebar: React.FC = () => {
         .toUpperCase();
     }
     return 'U';
+  };
+
+  // Determine which nav items to show based on user role
+  const getNavItems = () => {
+    const items = [...commonNavItems];
+    
+    // Add dealer-specific items if user is a dealer
+    if (userData?.role === 'dealer') {
+      items.push(...dealerNavItems);
+    }
+    
+    return items;
   };
 
   return (
@@ -256,7 +277,7 @@ const AppSidebar: React.FC = () => {
         {/* Main nav + bottom nav */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
-            {navTopItems.map((item) => {
+            {getNavItems().map((item) => {
               const active = location.pathname === item.path;
               return (
                 <Link
@@ -317,7 +338,7 @@ const AppSidebar: React.FC = () => {
           </nav>
         </div>
 
-        {/* Modernized User footer */}
+        {/* User footer with role indicator */}
         <div className="border-t border-gray-200 dark:border-gray-800 p-3">
           {collapsed ? (
             <div className="flex justify-center">
@@ -336,6 +357,7 @@ const AppSidebar: React.FC = () => {
                   <div className="flex flex-col space-y-1 p-2">
                     <p className="text-sm font-medium">{userData?.full_name || 'User'}</p>
                     <p className="text-xs text-gray-500 truncate">{userData?.email || ''}</p>
+                    <p className="text-xs font-medium text-primary-600 capitalize">{userData?.role || 'buyer'}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
@@ -381,6 +403,7 @@ const AppSidebar: React.FC = () => {
               <div className="flex flex-col">
                 <p className="text-sm font-medium truncate">{userData?.full_name || 'User'}</p>
                 <p className="text-xs text-gray-500 truncate">{userData?.email || ''}</p>
+                <p className="text-xs font-medium text-primary-600 capitalize">{userData?.role || 'buyer'}</p>
               </div>
             </div>
           )}
