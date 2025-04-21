@@ -93,7 +93,7 @@ const Auth: React.FC = () => {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: `${window.location.origin}/showroom` }
+       
       });
 
       if (error) {
