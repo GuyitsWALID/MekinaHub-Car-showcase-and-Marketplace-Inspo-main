@@ -44,21 +44,77 @@ export default function Setting() {
     if (user) {
       fetchUserProfile();
       fetchUserSettings();
+    } else {
+      console.log('No user found, cannot load settings');
     }
   }, [user]);
 
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
+      console.log('Fetching profile for user ID:', user?.id);
+      
+      if (!user?.id) {
+        console.error('No user ID available');
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        
+        // If the user doesn't exist in the users table, create a new record
+        if (error.code === 'PGRST116' || error.code === 'PGRST104') {
+          console.log('User not found in database, creating new record');
+          
+          // Create a new user with default values
+          const newUserData = {
+            id: user.id,
+            full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+            email: user.email || '',
+            phone: '',
+            company_name: '',
+            bio: '',
+            avatar_url: '',
+            role: 'buyer', // Default role
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          console.log('Inserting new user data:', newUserData);
+          
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert([newUserData]);
+            
+          if (insertError) {
+            console.error('Error creating user profile:', insertError);
+            return;
+          }
+          
+          // Set the profile data with the new user data
+          setProfileData({
+            full_name: newUserData.full_name,
+            email: newUserData.email,
+            phone: newUserData.phone,
+            company_name: newUserData.company_name,
+            bio: newUserData.bio,
+            avatar_url: newUserData.avatar_url,
+          });
+          
+          return;
+        }
+        
+        return;
+      }
 
       if (data) {
+        console.log('Profile data loaded:', data);
         setProfileData({
           full_name: data.full_name || '',
           email: data.email || '',
@@ -67,10 +123,13 @@ export default function Setting() {
           bio: data.bio || '',
           avatar_url: data.avatar_url || '',
         });
+      } else {
+        console.log('No profile data found, using default values');
+        // If no data is found, we'll use the default empty values
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      alert('Failed to load profile data');
+      console.error('Exception in fetchUserProfile:', error);
+      // Don't show alert, just log the error
     } finally {
       setLoading(false);
     }
@@ -78,66 +137,135 @@ export default function Setting() {
 
   const fetchUserSettings = async () => {
     try {
+      if (!user?.id) {
+        console.error('No user ID available for settings');
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching settings:', error);
+        
+        // If settings don't exist, create default settings
+        if (error.code === 'PGRST116' || error.code === 'PGRST104') {
+          console.log('User settings not found, creating defaults');
+          
+          const defaultSettings = {
+            user_id: user.id,
+            email_notifications: true,
+            push_notifications: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          const { error: insertError } = await supabase
+            .from('user_settings')
+            .insert([defaultSettings]);
+            
+          if (insertError) {
+            console.error('Error creating default settings:', insertError);
+            return;
+          }
+          
+          setNotificationSettings({
+            email_notifications: true,
+            push_notifications: true
+          });
+          
+          return;
+        }
+        
+        return;
+      }
 
       if (data) {
         setNotificationSettings({
           email_notifications: data.email_notifications ?? true,
           push_notifications: data.push_notifications ?? true,
         });
+      } else {
+        console.log('No settings found, using defaults');
+        // If no data is found, we'll use the default values
       }
     } catch (error) {
-      console.error('Error fetching user settings:', error);
+      console.error('Exception in fetchUserSettings:', error);
     }
   };
 
   const handleProfileUpdate = async () => {
     try {
       setLoading(true);
+      console.log('Updating profile for user ID:', user?.id);
 
       // Upload avatar if changed
       let avatar_url = profileData.avatar_url;
       if (avatarFile) {
         const fileExt = avatarFile.name.split('.').pop();
         const fileName = `${user?.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `avatars/${fileName}`;
+        const filePath = `${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
+        // First, check if there's an existing avatar and delete it
+        if (profileData.avatar_url) {
+          const existingPath = profileData.avatar_url.split('/').pop();
+          if (existingPath) {
+            const { error: deleteError } = await supabase.storage
+              .from('avatars')
+              .remove([existingPath]);
+            
+            if (deleteError) {
+              console.error('Error deleting old avatar:', deleteError);
+            }
+          }
+        }
+
+        // Upload new avatar
+        console.log('Uploading avatar to path:', filePath);
+        const { error: uploadError, data } = await supabase.storage
           .from('avatars')
-          .upload(filePath, avatarFile);
+          .upload(filePath, avatarFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          throw uploadError;
+        }
 
+        // Get public URL
         const { data: urlData } = supabase.storage
           .from('avatars')
           .getPublicUrl(filePath);
 
         avatar_url = urlData.publicUrl;
+        console.log('New avatar URL:', avatar_url);
       }
 
       // Update profile
+      const updateData = {
+        full_name: profileData.full_name,
+        phone: profileData.phone,
+        company_name: profileData.company_name,
+        bio: profileData.bio,
+        avatar_url,
+        updated_at: new Date().toISOString(),
+      };
+      
+      console.log('Updating with data:', updateData);
       const { error } = await supabase
         .from('users')
-        .update({
-          full_name: profileData.full_name,
-          phone: profileData.phone,
-          company_name: profileData.company_name,
-          bio: profileData.bio,
-          avatar_url,
-          updated_at: new Date(),
-        })
+        .update(updateData)
         .eq('id', user?.id);
 
       if (error) throw error;
 
       setProfileData(prev => ({ ...prev, avatar_url }));
       setAvatarFile(null);
+      setAvatarPreview(null);
       
       alert('Profile updated successfully');
     } catch (error) {

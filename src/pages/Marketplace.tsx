@@ -37,7 +37,23 @@ export default function Marketplace() {
 
   useEffect(() => {
     fetchListings();
-    // Optionally add realtime subscriptions here.
+
+    // Set up real-time subscription for listings
+    const listingsSubscription = supabase
+      .channel('listings-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'listings' },
+        (payload) => {
+          console.log('Listings change received:', payload);
+          fetchListings(); // Refresh the listings when changes occur
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(listingsSubscription);
+    };
   }, []);
 
   // Toggle favorite for a listing (bookmark icon)
@@ -217,7 +233,7 @@ export default function Marketplace() {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 dark:text-gray-300 mb-1">
-                  Email
+                  Company Email
                 </label>
                 <input
                   type="email"
@@ -237,7 +253,7 @@ export default function Marketplace() {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 dark:text-gray-300 mb-1">
-                  Why do you want to become a dealer?
+                  Why do you want to become a dealer in our platform?
                 </label>
                 <textarea
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
