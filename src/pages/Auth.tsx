@@ -29,7 +29,20 @@ const Auth: React.FC = () => {
   // Add auth state change listener
   useEffect(() => {
     console.log('Setting up auth state change listener');
-    console.log('Environment:', window.location.origin);
+    
+    // Check if we're coming back from an OAuth redirect
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        console.log('Session found on page load:', session.user.id);
+        // If we have a session, navigate to showroom
+        navigate('/showroom');
+      }
+    };
+    
+    // Check for existing session on component mount
+    checkSession();
     
     // Set up auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -100,31 +113,15 @@ const Auth: React.FC = () => {
   // OAuth handler
   const handleOAuth = async (provider: 'github' | 'google') => {
     try {
-      // Get the current origin - will be different in local vs production
-      const origin = window.location.origin;
-      console.log('Current origin:', origin);
-      
-      // For Vercel deployment, ensure we're using the exact URL format from your Supabase config
-      const redirectUrl = origin.includes('vercel.app') 
-        ? `https://mekinahub-guyitswalids-projects.vercel.app/showroom`
-        : `${origin}/showroom`;
-      
-      console.log('Using redirect URL:', redirectUrl);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { 
-          redirectTo: redirectUrl
-        }
+      // Simplify the OAuth flow - don't specify redirectTo
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider
       });
 
       if (error) {
         console.error('OAuth error:', error);
         setErrorMessage(error.message);
-        return;
       }
-
-      // Since OAuth redirects, we don't need to handle user data here
     } catch (err) {
       console.error('OAuth exception:', err);
       setErrorMessage('An error occurred during authentication');
