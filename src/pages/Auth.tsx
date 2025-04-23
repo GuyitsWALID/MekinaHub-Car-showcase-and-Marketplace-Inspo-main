@@ -113,15 +113,31 @@ const Auth: React.FC = () => {
   // OAuth handler
   const handleOAuth = async (provider: 'github' | 'google') => {
     try {
-      // Simplify the OAuth flow - don't specify redirectTo
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider
+      // Get the current origin - will be different in local vs production
+      const origin = window.location.origin;
+      console.log('Current origin:', origin);
+      
+      // For Vercel deployment, ensure we're using the exact URL format from your Supabase config
+      const redirectUrl = origin.includes('vercel.app') 
+        ? `https://mekinahub-guyitswalids-projects.vercel.app/showroom`
+        : `${origin}/showroom`;
+      
+      console.log('Using redirect URL:', redirectUrl);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { 
+          redirectTo: redirectUrl
+        }
       });
 
       if (error) {
         console.error('OAuth error:', error);
         setErrorMessage(error.message);
+        return;
       }
+
+      // Since OAuth redirects, we don't need to handle user data here
     } catch (err) {
       console.error('OAuth exception:', err);
       setErrorMessage('An error occurred during authentication');
@@ -151,19 +167,12 @@ const Auth: React.FC = () => {
     if (user) {
         const { error: insertError } = await supabase
             .from('users')
-            .insert([{ 
-                id: user.id,
-                full_name: name, 
-                email: user.email,
-                role: 'buyer',
-                created_at: new Date().toISOString()
-            }]);
+            .insert([{ full_name: name, email: user.email }]); // Use 'name' variable for full_name
 
         if (insertError) {
             setErrorMessage(insertError.message);
         } else {
-            // Redirect to showroom instead of checkemail
-            navigate('/showroom');
+            navigate('/checkemail'); // Redirect after successful insertion
         }
     }
 };
