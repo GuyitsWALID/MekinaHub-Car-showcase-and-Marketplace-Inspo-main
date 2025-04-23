@@ -151,12 +151,19 @@ const Auth: React.FC = () => {
     if (user) {
         const { error: insertError } = await supabase
             .from('users')
-            .insert([{ full_name: name, email: user.email }]); // Use 'name' variable for full_name
+            .insert([{ 
+                id: user.id,
+                full_name: name, 
+                email: user.email,
+                role: 'buyer',
+                created_at: new Date().toISOString()
+            }]);
 
         if (insertError) {
             setErrorMessage(insertError.message);
         } else {
-            navigate('/checkemail'); // Redirect after successful insertion
+            // Redirect to showroom instead of checkemail
+            navigate('/showroom');
         }
     }
 };
