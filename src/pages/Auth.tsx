@@ -29,18 +29,17 @@ const Auth: React.FC = () => {
   // Add auth state change listener
   useEffect(() => {
     console.log('Setting up auth state change listener');
-    
-    // Check if we're on the auth page after a redirect
-    const currentUrl = window.location.href;
-    console.log('Current URL:', currentUrl);
+    console.log('Environment:', window.location.origin);
     
     // Set up auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('Auth state changed:', event);
         
         // When a user signs in (including after OAuth redirect)
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in:', session.user.id);
+          
           try {
             // Check if user already exists in the users table
             const { data: existingUser, error: fetchError } = await supabase
@@ -98,23 +97,37 @@ const Auth: React.FC = () => {
   };
   
   // Fixed OAuth handler
+  // OAuth handler
   const handleOAuth = async (provider: 'github' | 'google') => {
     try {
+      // Get the current origin - will be different in local vs production
+      const origin = window.location.origin;
+      console.log('Current origin:', origin);
+      
+      // For Vercel deployment, ensure we're using the exact URL format from your Supabase config
+      const redirectUrl = origin.includes('vercel.app') 
+        ? `https://mekinahub-guyitswalids-projects.vercel.app/showroom`
+        : `${origin}/showroom`;
+      
+      console.log('Using redirect URL:', redirectUrl);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: `${window.location.origin}/showroom` }
+        options: { 
+          redirectTo: redirectUrl
+        }
       });
 
       if (error) {
+        console.error('OAuth error:', error);
         setErrorMessage(error.message);
         return;
       }
 
       // Since OAuth redirects, we don't need to handle user data here
-      // The user will be redirected to the specified URL
     } catch (err) {
+      console.error('OAuth exception:', err);
       setErrorMessage('An error occurred during authentication');
-      console.error(err);
     }
   };
 
