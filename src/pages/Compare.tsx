@@ -223,17 +223,123 @@ export default function Compare() {
 
       {/* Comparison Results */}
       {comparisonResult && (
-        <div className="max-w-7xl mx-auto p-4 bg-white dark:bg-gray-800 rounded-xl mt-4 shadow-lg">
-          <h3 className="text-2xl font-bold mb-4">Comparison Results</h3>
-          <div className="prose dark:prose-invert max-w-none">
-            {comparisonResult.split("\n").map((line, index) => (
-              <p key={index} className="mb-3">
-                {line}
-              </p>
-            ))}
+        <div className="max-w-7xl mx-auto p-8 bg-gradient-to-br from-blue-100 to-white dark:from-blue-900 dark:via-gray-900 dark:to-blue-900 rounded-2xl mt-8 shadow-2xl text-gray-800 dark:text-white">
+          <div className="comparison-container space-y-6">
+            {comparisonResult.split("\n").map((line, index) => {
+              // Main Title (H1)
+              if (line.startsWith("# ")) {
+                return (
+                  <div key={index} className="text-center space-y-4">
+                    <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600 dark:from-blue-400 dark:to-emerald-400 animate-gradient">
+                      {line.replace("# ", "")}
+                    </h1>
+                    <div className="w-32 h-1 mx-auto bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"></div>
+                  </div>
+                );
+              }
+              
+              // Car Section Titles (H2)
+              if (line.startsWith("## ")) {
+                return (
+                  <div key={index} className="transform hover:scale-[1.01] transition-all duration-300">
+                    <div className="bg-white/80 dark:bg-blue-800/30 rounded-xl p-6 mb-6 backdrop-blur-sm shadow-lg border border-blue-100 dark:border-blue-800">
+                      <h2 className="text-2xl font-bold flex items-center gap-2 text-blue-800 dark:text-white">
+                        <span className="inline-block p-2 bg-blue-100 dark:bg-blue-700 rounded-lg">
+                          🚗
+                        </span>
+                        {line.replace("## ", "")}
+                      </h2>
+                    </div>
+                  </div>
+                );
+              }
+              
+              // Section Headers (H3)
+              if (line.startsWith("### ")) {
+                return (
+                  <div key={index} className="relative">
+                    <h3 className="text-xl font-semibold mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                      <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
+                      {line.replace("### ", "")}
+                    </h3>
+                  </div>
+                );
+              }
+              
+              // List Items
+              if (line.startsWith("-")) {
+                return (
+                  <div key={index} 
+                    className="flex items-center space-x-3 mb-2 p-3 hover:bg-blue-50/50 dark:hover:bg-blue-800/20 rounded-lg transition-all duration-200 transform hover:translate-x-1"
+                  >
+                    <span className="flex-shrink-0 w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></span>
+                    <p className="mb-0 text-gray-700 dark:text-gray-200">{line.substring(1).trim()}</p>
+                  </div>
+                );
+              }
+              
+              // Comparison Table
+              if (line.includes("|")) {
+                const cells = line.split("|").filter(cell => cell.trim());
+                return (
+                  <div key={index} className="overflow-hidden">
+                    <div className="transform hover:scale-[1.01] transition-all duration-300">
+                      <div className="bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/50 dark:to-blue-800/30 p-6 rounded-xl shadow-lg backdrop-blur-sm">
+                        <div className="grid grid-cols-3 gap-6">
+                          {cells.map((cell, cellIndex) => (
+                            <div key={cellIndex} className="text-center">
+                              <div className="bg-white/80 dark:bg-blue-900/50 rounded-lg p-4 shadow-sm border border-blue-100 dark:border-blue-700">
+                                <p className="font-medium text-gray-800 dark:text-white">
+                                  {cell.trim()}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              
+              // Default paragraph styling
+              return (
+                <p key={index} className="mb-4 leading-relaxed text-gray-700 dark:text-gray-200 px-4">
+                  {line}
+                </p>
+              );
+            })}
           </div>
         </div>
       )}
+
+      <style>{`
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 6s linear infinite;
+        }
+
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .comparison-container {
+          animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+          100% { transform: translateY(0px); }
+        }
+      `}</style>
     </>
   );
 }

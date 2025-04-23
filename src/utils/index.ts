@@ -1,4 +1,5 @@
 // src/utils/index.ts
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { CarProps, FilterProps } from "../types";
 
 export const calculateCarRent = (city_mpg: number, year: number): string => {
@@ -109,8 +110,9 @@ export function generateCar360Images(car: CarProps, angles?: string[]): string[]
 
   return urls;
 }
-// Add to utils/index.ts
-// A simple cache to store comparisons keyed by car details
+
+ 
+
 const compareCache = new Map<string, string>();
 
 export const compareCars = async (car1: CarProps, car2: CarProps): Promise<string> => {
@@ -118,66 +120,155 @@ export const compareCars = async (car1: CarProps, car2: CarProps): Promise<strin
     // Validate that required fields exist in both car objects
     const requiredFields: (keyof CarProps)[] = ['make', 'model', 'year', 'city_mpg'];
     for (const field of requiredFields) {
-      if (!car1[field] || !car2[field]) {
-        throw new Error(`Missing ${field} in one of the car objects.`);
+      // Check for null, undefined, or empty string for make/model
+      if (field === 'make' || field === 'model') {
+         if (!car1[field] || !car2[field]) {
+            throw new Error(`Missing or empty ${field} in one of the car objects.`);
+         }
+      } else {
+         // Check for null or undefined for year/mpg
+         if (car1[field] == null || car2[field] == null) { // Using == null checks for both null and undefined
+             throw new Error(`Missing ${field} in one of the car objects.`);
+         }
       }
     }
+    const cacheKey = `compare-${car1.make}-${car1.model}-${car1.year}-${car1.city_mpg}::${car2.make}-${car2.model}-${car2.year}-${car2.city_mpg}`;
 
-    // Generate a unique cache key based on the car details
-    const cacheKey = `${car1.make}-${car1.model}-${car1.year}-${car1.city_mpg}::${car2.make}-${car2.model}-${car2.year}-${car2.city_mpg}`;
-    
-    // If the result is already cached, return it immediately.
+    // --- Check Cache ---
     if (compareCache.has(cacheKey)) {
       console.log("Returning cached comparison result.");
       return compareCache.get(cacheKey)!;
     }
 
-    // Load the API key from environment variables
-    const API_KEY = import.meta.env.VITE_OPENAI_KEY;
+    // --- Load API Key ---
+    const API_KEY = import.meta.env.VITE_GEMINI_API_KEY; // 
     if (!API_KEY) {
-      throw new Error("API key is missing. Please check your environment variables.");
+      throw new Error("Gemini API key is missing. Please set VITE_GEMINI_API_KEY in your environment variables.");
     }
 
-    // Construct the prompt to send to OpenAI
-    const prompt = `Compare the following two cars based on their specifications:
-- Car 1: ${car1.make} ${car1.model} (${car1.year}), ${car1.city_mpg} MPG
-- Car 2: ${car2.make} ${car2.model} (${car2.year}), ${car2.city_mpg} MPG
-
-Provide a detailed analysis including aspects such as performance, efficiency, and practicality.`;
-
-    // Call the OpenAI API
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 300
-      })
+    // --- Initialize Gemini Client ---
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash-latest", // Or "gemini-pro" if flash isn't available/suitable
+        // --- Safety Settings (Optional but Recommended) ---
+        // Adjust these based on your needs. Blocking potentially sensitive car comparisons might not be necessary.
+        safetySettings: [
+            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+        ]
     });
 
-    // Handle unsuccessful responses
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("OpenAI API Error:", errorData);
-      return "Failed to fetch comparison. Please check the console for details.";
+    // --- Construct Prompt ---
+    const prompt = `Create a visually engaging car comparison with the following format:
+
+# 🚗 Vehicle Comparison: [Theme based on cars being compared]
+
+## ${car1.make} ${car1.model} (${car1.year}) [appropriate emoji]
+### ✨ Key Highlights
+- Main Feature Category [emoji]
+  - Sub-feature 1
+  - Sub-feature 2
+  - Sub-feature 3
+
+### 💪 Strengths
+- [emoji] Key strength 1
+- [emoji] Key strength 2
+- [emoji] Key strength 3
+- [emoji] Key strength 4
+- [emoji] Key strength 5
+
+### 👥 Perfect For
+- [emoji] Target audience 1
+- [emoji] Target audience 2
+- [emoji] Target audience 3
+- [emoji] Target audience 4
+
+[Repeat same structure for ${car2.make} ${car2.model}]
+
+## 📊 Head-to-Head Comparison
+Create a comparison table with the following features rated with stars (⭐):
+- Best For
+- Fuel Economy (based on city_mpg: ${car1.city_mpg} vs ${car2.city_mpg})
+- Luxury
+- Price Point
+- Space
+- City Driving
+- Off-Road Capability
+
+## 🎯 Final Verdict
+
+Choose the ${car1.model} if you:
+- [emoji] Reason 1
+- [emoji] Reason 2
+- [emoji] Reason 3
+- [emoji] Reason 4
+
+Choose the ${car2.model} if you:
+- [emoji] Reason 1
+- [emoji] Reason 2
+- [emoji] Reason 3
+- [emoji] Reason 4
+
+Remember: The best choice depends on your lifestyle, budget, and primary use case! 🎯
+
+Important formatting rules:
+1. Use emojis extensively for visual appeal
+2. Create clear section breaks
+3. Use bullet points for easy scanning
+4. Group similar information
+5. Keep the tone professional but engaging
+6. Use stars (⭐) for ratings in the comparison table
+7. Ensure all sections are properly formatted with markdown`;
+
+    // --- Call Gemini API ---
+    console.log("Calling Gemini API...");
+    const generationConfig = {
+        temperature: 0.7, // Controls randomness (0 = deterministic, 1 = max randomness)
+        maxOutputTokens: 400, // Adjust token limit as needed
+        // topP: 0.9, // Optional: Nucleus sampling
+        // topK: 40, // Optional: Top-k sampling
+    };
+
+    const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: generationConfig,
+    });
+
+    const response = result.response;
+
+    // --- Process Response ---
+    // Check if the response was blocked or had issues
+    if (!response || !response.candidates || response.candidates.length === 0 || !response.candidates[0].content?.parts?.[0]?.text) {
+        console.error("Gemini API Error: No valid response received or content was blocked.", response?.promptFeedback || 'No feedback available.');
+        // Check for safety blocks specifically
+        if (response?.promptFeedback?.blockReason) {
+             return `Comparison generation blocked. Reason: ${response.promptFeedback.blockReason}`;
+        }
+        return "Failed to get comparison from AI. Response was empty or invalid.";
     }
 
-    // Parse the response
-    const data = await response.json();
-    const result = data.choices?.[0]?.message?.content || "No response from AI.";
+    const comparisonText = response.candidates[0].content.parts[0].text;
 
-    // Cache the result to avoid duplicate API calls in the future
-    compareCache.set(cacheKey, result);
+    // --- Cache Result ---
+    compareCache.set(cacheKey, comparisonText);
+    console.log("Comparison successful, result cached.");
 
-    return result;
+    // The rest of the function remains the same, just update the prompt
+    
+    return comparisonText;
 
-  } catch (error) {
-    console.error("Comparison error:", error);
-    return "Comparison unavailable. Please check the console for error details.";
+  } catch (error: any) {
+    console.error("Gemini Comparison Error:", error);
+    // Provide more specific error messages if possible
+    if (error.message && error.message.includes('API key not valid')) {
+        return "Comparison unavailable: Invalid Gemini API key. Please check your VITE_GEMINI_API_KEY.";
+    }
+    if (error.message && error.message.includes('quota')) {
+        return "Comparison unavailable: API quota exceeded. Please check your usage limits.";
+    }
+    // General error message
+    return `Comparison unavailable due to an error: ${error.message || 'Unknown error'}. Check console for details.`;
   }
 };
