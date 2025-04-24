@@ -36,7 +36,16 @@ export default function Marketplace() {
   };
 
   useEffect(() => {
-    fetchListings();
+    const fetchData = async () => {
+      try {
+        await fetchListings();
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+        // Add user-friendly error handling here
+      }
+    };
+    
+    fetchData();
 
     // Set up real-time subscription for listings
     const listingsSubscription = supabase
@@ -121,10 +130,81 @@ export default function Marketplace() {
   };
 
   // Handle "Become a Dealer" form submission (placeholder)
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Form submitted');
-    setIsModalOpen(false);
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      // Get current user with enhanced error handling
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Authentication error:', userError);
+        alert('Authentication error. Please try logging in again.');
+        return;
+      }
+      
+      if (!user || !user.id) {
+        alert('Please sign in to submit a dealer application');
+        return;
+      }
+
+      // Validate form data
+      const fullName = formData.get('full_name') as string;
+      const companyEmail = formData.get('company_email') as string;
+      const companyName = formData.get('company_name') as string;
+      const motivation = formData.get('motivation') as string;
+
+      // Enhanced validation
+      if (!fullName || fullName.length < 2) {
+        alert('Please enter your full name');
+        return;
+      }
+
+      if (!companyEmail.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      if (companyName.length < 2) {
+        alert('Company name must be at least 2 characters long');
+        return;
+      }
+
+      if (motivation.length < 10) {
+        alert('Please provide a more detailed motivation');
+        return;
+      }
+
+      // Insert dealer application into Supabase
+      const { error } = await supabase.from('dealer_applications_new').insert([
+        {
+          user_id: user.id,
+          full_name: fullName,
+          company_email: companyEmail,
+          company_name: companyName,
+          motivation: motivation,
+          status: 'pending'
+        }
+      ]);
+
+      if (error) {
+        console.error('Error submitting application:', error);
+        alert(`Failed to submit application: ${error.message}`);
+        return;
+      }
+
+      alert('Application submitted successfully!');
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -227,6 +307,7 @@ export default function Marketplace() {
                 </label>
                 <input
                   type="text"
+                  name="full_name"
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
                 />
@@ -237,6 +318,7 @@ export default function Marketplace() {
                 </label>
                 <input
                   type="email"
+                  name="company_email"
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
                 />
@@ -247,6 +329,7 @@ export default function Marketplace() {
                 </label>
                 <input
                   type="text"
+                  name="company_name"
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
                 />
@@ -256,6 +339,7 @@ export default function Marketplace() {
                   Why do you want to become a dealer in our platform?
                 </label>
                 <textarea
+                  name="motivation"
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   rows={3}
                   required
@@ -263,9 +347,12 @@ export default function Marketplace() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200"
+                disabled={isSubmitting}
+                className={`w-full ${
+                  isSubmitting ? 'bg-gray-400' : 'bg-primary-600 hover:bg-primary-700'
+                } text-white py-2 rounded-lg transition-colors duration-200`}
               >
-                Submit Application
+                {isSubmitting ? 'Submitting...' : 'Submit Application'}
               </button>
             </form>
           </div>
