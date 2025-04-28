@@ -153,47 +153,114 @@ export default function Marketplace() {
       }
 
       // Validate form data
-      const fullName = formData.get('full_name') as string;
-      const companyEmail = formData.get('company_email') as string;
       const companyName = formData.get('company_name') as string;
-      const motivation = formData.get('motivation') as string;
+      const contactEmail = formData.get('contact_email') as string;
+      const contactPhone = formData.get('contact_phone') as string;
+      const location = formData.get('location') as string;
+      const description = formData.get('description') as string;
+      const logoFile = formData.get('logo') as File;
 
       // Enhanced validation
-      if (!fullName || fullName.length < 2) {
-        alert('Please enter your full name');
+      if (!companyName || companyName.length < 2) {
+        alert('Please enter a valid company name');
         return;
       }
 
-      if (!companyEmail.includes('@')) {
+      if (!contactEmail.includes('@')) {
         alert('Please enter a valid email address');
         return;
       }
 
-      if (companyName.length < 2) {
-        alert('Company name must be at least 2 characters long');
+      if (!contactPhone || contactPhone.length < 10) {
+        alert('Please enter a valid phone number');
         return;
       }
 
-      if (motivation.length < 10) {
-        alert('Please provide a more detailed motivation');
+      if (!location || location.length < 2) {
+        alert('Please enter a valid location');
         return;
+      }
+
+      if (!description || description.length < 10) {
+        alert('Please provide a detailed description');
+        return;
+      }
+
+      let logoUrl = '';
+      if (logoFile && logoFile.size > 0) {
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!allowedTypes.includes(logoFile.type)) {
+          alert('Please upload a valid image file (PNG, JPG, or JPEG)');
+          return;
+        }
+
+        // Validate file size (max 5MB)
+        if (logoFile.size > 5 * 1024 * 1024) {
+          alert('Logo file size must be less than 5MB');
+          return;
+        }
+
+        try {
+          // Upload logo to Supabase Storage
+          const fileExt = logoFile.name.split('.').pop();
+          const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+          
+          console.log('Attempting to upload file:', {
+            fileName,
+            fileSize: logoFile.size,
+            fileType: logoFile.type
+          });
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('dealers')  // Changed from 'dealer-logos' to 'dealers'
+            .upload(`logos/${fileName}`, logoFile, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType: logoFile.type
+            });
+
+          if (uploadError) {
+            console.error('Upload error details:', uploadError);
+            throw new Error(`Upload failed: ${uploadError.message}`);
+          }
+
+          if (!uploadData?.path) {
+            throw new Error('Upload successful but no path returned');
+          }
+
+          // Get public URL for the uploaded file
+          const { data: { publicUrl } } = supabase.storage
+            .from('dealers')
+            .getPublicUrl(`logos/${fileName}`);
+            
+          logoUrl = publicUrl;
+          console.log('File uploaded successfully:', logoUrl);
+        } catch (uploadError) {
+          console.error('Detailed upload error:', uploadError);
+          alert('Failed to upload logo. Please ensure the file is a valid image and try again.');
+          return;
+        }
       }
 
       // Insert dealer application into Supabase
-      const { error } = await supabase.from('dealer_applications_new').insert([
+      // Inside handleFormSubmit function
+      const { data, error } = await supabase.from('dealer_applications').insert([
         {
           user_id: user.id,
-          full_name: fullName,
-          company_email: companyEmail,
           company_name: companyName,
-          motivation: motivation,
+          contact_email: contactEmail,
+          contact_phone: contactPhone,
+          location: location,
+          description: description,
+          logo_url: logoUrl || null,
           status: 'pending'
         }
-      ]);
+      ]).select();
 
       if (error) {
-        console.error('Error submitting application:', error);
-        alert(`Failed to submit application: ${error.message}`);
+        console.error('Detailed error:', error);
+        alert(`Failed to submit application: ${error.message || 'Unknown error occurred'}`);
         return;
       }
 
@@ -303,28 +370,6 @@ export default function Marketplace() {
             <form onSubmit={handleFormSubmit}>
               <div className="mb-4">
                 <label className="block text-gray-700 dark:text-gray-300 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="full_name"
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 mb-1">
-                  Company Email
-                </label>
-                <input
-                  type="email"
-                  name="company_email"
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 mb-1">
                   Company Name
                 </label>
                 <input
@@ -336,14 +381,61 @@ export default function Marketplace() {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 dark:text-gray-300 mb-1">
-                  Why do you want to become a dealer in our platform?
+                  Contact Email
+                </label>
+                <input
+                  type="email"
+                  name="contact_email"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Contact Phone
+                </label>
+                <input
+                  type="tel"
+                  name="contact_phone"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Description
                 </label>
                 <textarea
-                  name="motivation"
+                  name="description"
                   className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   rows={3}
                   required
                 ></textarea>
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Company Logo
+                </label>
+                <input
+                  type="file"
+                  name="logo"
+                  accept="image/*"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Upload your company logo (PNG, JPG, JPEG)
+                </p>
               </div>
               <button
                 type="submit"
