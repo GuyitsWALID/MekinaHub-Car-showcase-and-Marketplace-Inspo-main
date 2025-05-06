@@ -35,7 +35,7 @@ export default function DealerAnalytics() {
       
       // Fetch counts with proper error handling
       const [listingsRes, favoritesRes, leadsRes] = await Promise.all([
-        supabase.from('listings').select('*', { count: 'exact' }),
+        supabase.from('cars').select('*', { count: 'exact' }),
         supabase.from('favorites').select('*', { count: 'exact' }),
         supabase.from('messages').select('*', { count: 'exact' })
       ]);

@@ -25,7 +25,7 @@ export default function Marketplace() {
   // Fetch listings from Supabase
   const fetchListings = async () => {
     const { data, error } = await supabase
-      .from('listings')
+      .from('cars')
       .select('*')
       .order('created_at', { ascending: false });
     if (error) {

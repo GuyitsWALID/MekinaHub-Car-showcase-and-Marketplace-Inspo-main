@@ -8,8 +8,11 @@ interface Listing {
   price: string;
   status: string;
   image: string;
-  details: string;
+  description: string; // <-- changed from details to description
   created_at: string;
+  car_type?: string;
+  fuel_type?: string;
+  transmission?: string; // <-- Add this line
 }
 
 export default function DealerDashboard() {
@@ -17,27 +20,50 @@ export default function DealerDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editListing, setEditListing] = useState<Listing | null>(null);
 
-  // Controlled state for details with word limit
   const [addDetails, setAddDetails] = useState('');
   const [editDetails, setEditDetails] = useState('');
   const MAX_WORDS = 100;
 
-  // Update editDetails state when editListing changes
   useEffect(() => {
     if (editListing) {
-      setEditDetails(editListing.details);
+      setEditDetails(editListing.description);
     }
   }, [editListing]);
 
-  // Fetch listings from Supabase
+  // Fetch all listings for the current dealer only
   const fetchListings = async () => {
+    // Get the authenticated user's ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setListings([]);
+      return;
+    }
+
+    // Query the dealers table to get the dealer's id
+    const { data: dealerData, error: dealerError } = await supabase
+      .from('dealers')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (dealerError || !dealerData) {
+      setListings([]);
+      return;
+    }
+
+    const dealer_id = dealerData.id;
+
+    // Fetch only listings for this dealer
     const { data, error } = await supabase
-      .from('listings')
+      .from('cars')
       .select('*')
+      .eq('dealer_id', dealer_id)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching listings:', error);
+      console.error('Error fetching listings:', error.message);
+      alert(`Could not fetch listings: ${error.message}`);
+      setListings([]);
     } else if (data) {
       setListings(data as Listing[]);
     }
@@ -47,151 +73,180 @@ export default function DealerDashboard() {
     fetchListings();
   }, []);
 
-  // Handler for details change (Add)
+  // Word-count util
+  const countWords = (text: string | undefined | null) =>
+    (text ?? '').trim().split(/\s+/).filter((w) => w).length;
+
+  // Handlers for controlled textareas
   const handleAddDetailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    const words = value.trim().split(/\s+/).filter(word => word !== "");
-    if (words.length <= MAX_WORDS) {
-      setAddDetails(value);
-    }
+    const text = e.target.value;
+    if (countWords(text) <= MAX_WORDS) setAddDetails(text);
   };
-
-  // Handler for details change (Edit)
   const handleEditDetailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    const words = value.trim().split(/\s+/).filter(word => word !== "");
-    if (words.length <= MAX_WORDS) {
-      setEditDetails(value);
-    }
+    const text = e.target.value;
+    if (countWords(text) <= MAX_WORDS) setEditDetails(text);
   };
 
-  // Add a new listing
+  // Add new listing
   const handleAddListing = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
-    const title = formData.get('title') as string;
-    const price = formData.get('price') as string;
-    const status = formData.get('status') as string;
-
-    // Get image inputs
+    const title = (formData.get('title') as string) || '';
+    const price = (formData.get('price') as string) || '';
+    const status = (formData.get('status') as string) || 'Available';
+    const carType = (formData.get('car_type') as string) || '';
+    const fuelType = (formData.get('fuel_type') as string) || '';
+    const transmission = (formData.get('transmission') as string) || ''; // NEW
+    const imageUrlInput = (formData.get('imageUrl') as string) || '';
     const fileInput = formData.get('imageFile') as File;
-    const imageUrlInput = formData.get('imageUrl') as string;
 
-    let finalImage = imageUrlInput; // Default to URL provided
-
-    // If file input exists, upload file
+    // Decide image URL
+    let finalImage = imageUrlInput;
     if (fileInput && fileInput.size > 0) {
       const { error: uploadError } = await supabase.storage
-        .from('images') // Ensure you have a bucket named "images"
+        .from('car.images')
         .upload(`public/${fileInput.name}`, fileInput);
       if (uploadError) {
-        console.error('Error uploading file:', uploadError);
+        console.error('Upload error:', uploadError.message);
+        alert(`Image upload failed: ${uploadError.message}`);
         return;
-      } else {
-        const { data: publicUrlData } = supabase.storage
-          .from('images')
-          .getPublicUrl(`public/${fileInput.name}`);
-        finalImage = publicUrlData?.publicUrl || finalImage;
       }
+      const { data: urlData } = supabase.storage
+        .from('car.images')
+        .getPublicUrl(`public/${fileInput.name}`);
+      finalImage = urlData.publicUrl;
     }
 
-    // Use controlled description value (addDetails)
-    const details = addDetails;
-
-    // Second check on word limit
-    const words = details.trim().split(/\s+/).filter(word => word !== "");
-    if (words.length > MAX_WORDS) {
-      alert(`Details must not exceed ${MAX_WORDS} words.`);
+    const details = addDetails.trim();
+    if (countWords(details) > MAX_WORDS) {
+      alert(`Details must be ≤ ${MAX_WORDS} words.`);
       return;
     }
 
+    // Get the authenticated user's ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('You must be logged in to add a listing.');
+      return;
+    }
+
+    // Query the dealers table to get the dealer's id
+    const { data: dealerData, error: dealerError } = await supabase
+      .from('dealers')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (dealerError || !dealerData) {
+      alert('Dealer profile not found for this user.');
+      return;
+    }
+
+    const dealer_id = dealerData.id;
+
     const { error } = await supabase
-      .from('listings')
-      .insert([{ title, price, status, image: finalImage, details }]);
+      .from('cars')
+      .insert([
+        { 
+          title, price, status, image: finalImage, details, 
+          car_type: carType, fuel_type: fuelType, transmission, 
+          dealer_id // <-- use dealer_id from dealers table
+        }
+      ]);
 
     if (error) {
-      console.error('Error adding listing:', error);
+      console.error('Insert error:', error.message);
+      alert(`Failed to add listing: ${error.message}`);
     } else {
-      setIsAddModalOpen(false);
-      e.currentTarget.reset();
+      form.reset();
       setAddDetails('');
+      setIsAddModalOpen(false);
       fetchListings();
     }
   };
 
-  // Edit an existing listing
+  // Edit existing listing
   const handleEditListing = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editListing) return;
 
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
-    const title = formData.get('title') as string;
-    const price = formData.get('price') as string;
-    const status = formData.get('status') as string;
-
-    // Get image inputs
+    const title = (formData.get('title') as string) || '';
+    const price = (formData.get('price') as string) || '';
+    const status = (formData.get('status') as string) || editListing.status;
+    const carType = (formData.get('car_type') as string) || '';
+    const fuelType = (formData.get('fuel_type') as string) || '';
+    const transmission = (formData.get('transmission') as string) || ''; // <-- Add this line
+    const imageUrlInput = (formData.get('imageUrl') as string) || '';
     const fileInput = formData.get('imageFile') as File;
-    const imageUrlInput = formData.get('imageUrl') as string;
 
-    let finalImage = imageUrlInput;
+    let finalImage = imageUrlInput || editListing.image;
     if (fileInput && fileInput.size > 0) {
       const { error: uploadError } = await supabase.storage
-        .from('images')
+        .from('car.images')
         .upload(`public/${fileInput.name}`, fileInput);
       if (uploadError) {
-        console.error('Error uploading file:', uploadError);
+        console.error('Upload error:', uploadError.message);
+        alert(`Image upload failed: ${uploadError.message}`);
         return;
-      } else {
-        const { data: publicUrlData } = supabase.storage
-          .from('images')
-          .getPublicUrl(`public/${fileInput.name}`);
-        finalImage = publicUrlData?.publicUrl || finalImage;
       }
+      const { data: urlData } = supabase.storage
+        .from('car.images')
+        .getPublicUrl(`public/${fileInput.name}`);
+      finalImage = urlData.publicUrl;
     }
 
-    const details = editDetails;
-    const words = details.trim().split(/\s+/).filter(word => word !== "");
-    if (words.length > MAX_WORDS) {
-      alert(`Details must not exceed ${MAX_WORDS} words.`);
+    const details = editDetails.trim();
+    if (countWords(details) > MAX_WORDS) {
+      alert(`Details must be ≤ ${MAX_WORDS} words.`);
       return;
     }
 
     const { error } = await supabase
-      .from('listings')
-      .update({ title, price, status, image: finalImage, details })
+      .from('cars')
+      .update({
+        title,
+        price,
+        status,
+        image: finalImage,
+        details,
+        car_type: carType,
+        fuel_type: fuelType,
+        transmission // Now this works because it's declared above
+      })
       .eq('id', editListing.id);
 
     if (error) {
-      console.error('Error updating listing:', error);
+      console.error('Update error:', error.message);
+      alert(`Failed to save changes: ${error.message}`);
     } else {
       setEditListing(null);
-      e.currentTarget.reset();
       setEditDetails('');
       fetchListings();
     }
   };
 
-  // Delete a listing
-  const handleDeleteListing = async (id: number) => {
-    const { error } = await supabase.from('listings').delete().eq('id', id);
+  // Delete listing
+  const handleDelete = async (id: number) => {
+    const { error } = await supabase.from('cars').delete().eq('id', id);
     if (error) {
-      console.error('Error deleting listing:', error);
+      console.error('Delete error:', error.message);
+      alert(`Could not delete: ${error.message}`);
     } else {
       fetchListings();
     }
   };
 
-  // Mark as sold
-  const handleMarkAsSold = async (id: number) => {
-    const { error } = await supabase
-      .from('listings')
-      .update({ status: 'Sold' })
-      .eq('id', id);
-
+  // Mark as Sold
+  const handleMarkSold = async (id: number) => {
+    const { error } = await supabase.from('cars').update({ status: 'Sold' }).eq('id', id);
     if (error) {
-      console.error('Error marking listing as sold:', error);
+      console.error('Update error:', error.message);
+      alert(`Could not mark as sold: ${error.message}`);
     } else {
       fetchListings();
     }
@@ -199,74 +254,70 @@ export default function DealerDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      {/* Dashboard Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Dealer Dashboard
-        </h1>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-10 gap-4">
+        <h1 className="text-3xl font-bold tracking-tight">My Listings</h1>
         <button
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center"
           onClick={() => setIsAddModalOpen(true)}
+          className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center shadow transition"
+          style={{ fontWeight: 600, fontSize: '1rem' }}
         >
-          <Plus className="w-5 h-5 mr-2" />
-          Add New Listing
+          <Plus className="w-5 h-5 mr-2" /> Add Listing
         </button>
       </div>
 
-      {/* Card Layout for All Screen Sizes */}
-      <div className="space-y-4">
+      {/* Listings Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {listings.map((listing) => (
           <div
             key={listing.id}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col sm:flex-row items-start sm:space-x-4"
+            className="bg-white rounded-xl shadow-lg p-6 flex flex-col sm:flex-row gap-6 hover:shadow-xl transition"
           >
             <img
-              className="h-24 w-24 rounded object-cover mb-4 sm:mb-0"
               src={listing.image}
               alt={listing.title}
+              className="h-32 w-32 rounded-lg object-cover mx-auto sm:mx-0"
             />
-            <div className="flex-1">
-              <div className="text-xl font-semibold text-gray-900 dark:text-white">
-                {listing.title}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {listing.details}
-              </div>
-              <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                Price: <span className="font-medium">{listing.price}</span>
-              </div>
-              <div className="text-sm mt-1">
-                Status:{' '}
-                <span
-                  className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            <div className="flex-1 flex flex-col justify-between">
+              <div>
+                <h2 className="text-xl font-semibold mb-1">{listing.title}</h2>
+                <p className="text-sm text-gray-600 mb-2">{listing.description}</p>
+                <p className="mt-2 text-base">
+                  Price: <span className="font-medium">{listing.price}</span>
+                </p>
+                <p className="mt-1">
+                  Status:{' '}
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                     listing.status === 'Available'
-                      ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                      : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                  }`}
-                >
-                  {listing.status}
-                </span>
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {listing.status}
+                  </span>
+                </p>
               </div>
-              {/* Actions (Edit, Delete, Mark as Sold) */}
-              <div className="mt-3 flex space-x-2">
+              <div className="mt-4 flex space-x-3">
                 <button
-                  className="text-primary-600 dark:text-primary-400 hover:text-primary-900"
                   onClick={() => setEditListing(listing)}
+                  className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
+                  title="Edit"
                 >
-                  <Edit2 className="w-5 h-5" />
+                  <Edit2 />
                 </button>
                 <button
-                  className="text-red-600 dark:text-red-400 hover:text-red-900"
-                  onClick={() => handleDeleteListing(listing.id)}
+                  onClick={() => handleDelete(listing.id)}
+                  className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
+                  title="Delete"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 />
                 </button>
                 {listing.status === 'Available' && (
                   <button
-                    className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900"
-                    onClick={() => handleMarkAsSold(listing.id)}
+                    onClick={() => handleMarkSold(listing.id)}
+                    className="p-2 rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition"
+                    title="Mark as Sold"
                   >
-                    <Tag className="w-5 h-5" />
+                    <Tag />
                   </button>
                 )}
               </div>
@@ -277,105 +328,108 @@ export default function DealerDashboard() {
 
       {/* Add Listing Modal */}
       {isAddModalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          role="dialog"
-          aria-modal="true"
-        >
+        <div className="fixed inset-0 flex items-center justify-center z-50" role="dialog">
           <div
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setIsAddModalOpen(false)}
           />
-          <div className="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-lg w-full z-10">
+          <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] overflow-y-auto">
             <button
-              aria-label="Close modal"
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               onClick={() => setIsAddModalOpen(false)}
+              className="absolute top-4 right-4 text-xl"
+              aria-label="Close"
             >
-              &times;
+              ×
             </button>
-            <h2 className="text-2xl font-bold mb-4">Add New Listing</h2>
-            <form onSubmit={handleAddListing}>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  required
-                />
+            <h2 className="text-2xl font-bold mb-6">Add New Listing</h2>
+            <form onSubmit={handleAddListing} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1">Title</label>
+                  <input name="title" required className="w-full p-2 border rounded-lg" />
+                </div>
+                <div>
+                  <label className="block mb-1">Price</label>
+                  <input name="price" required className="w-full p-2 border rounded-lg" />
+                </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Price
-                </label>
-                <input
-                  type="text"
-                  name="price"
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  required
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block mb-1">Status</label>
+                  <select name="status" defaultValue="Available" className="w-full p-2 border rounded-lg">
+                    <option>Available</option>
+                    <option>Sold</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1">Car Type</label>
+                  <select name="car_type" required className="w-full p-2 border rounded-lg">
+                    <option value="">Select Car Type</option>
+                    <option>Sedan</option>
+                    <option>SUV</option>
+                    <option>Hatchback</option>
+                    <option>Truck</option>
+                    <option>Luxury</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1">Fuel Type</label>
+                  <select name="fuel_type" required className="w-full p-2 border rounded-lg">
+                    <option value="">Select Fuel Type</option>
+                    <option>Gasoline</option>
+                    <option>Diesel</option>
+                    <option>Electric</option>
+                    <option>Hybrid</option>
+                    <option>Plug-in Hybrid</option>
+                    <option>Hydrogen</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1">Transmission</label>
+                  <select name="transmission" required className="w-full p-2 border rounded-lg">
+                    <option value="">Select Transmission</option>
+                    <option value="Automatic">Automatic</option>
+                    <option value="Manual">Manual</option>
+                    <option value="CVT">CVT</option>
+                    <option value="Dual-Clutch">Dual-Clutch</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  required
-                >
-                  <option value="Available">Available</option>
-                  <option value="Sold">Sold</option>
-                </select>
+              <div>
+                <label className="block mb-1">Image URL</label>
+                <input name="imageUrl" type="url" placeholder="https://..." className="w-full p-2 border rounded-lg" />
               </div>
-              {/* Image File Upload */}
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Upload Image
-                </label>
-                <input
-                  type="file"
-                  name="imageFile"
-                  accept="image/*"
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                />
+              <div>
+                <label className="block mb-1">Or Upload Image</label>
+                <input name="imageFile" type="file" accept="image/*" className="w-full p-2 border rounded-lg" />
               </div>
-              {/* OR Image URL */}
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Or Image URL
-                </label>
-                <input
-                  type="text"
-                  name="imageUrl"
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  placeholder="http://example.com/myimage.jpg"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Details (max {MAX_WORDS} words)
-                </label>
+              <div>
+                <label className="block mb-1">Details (max {MAX_WORDS} words)</label>
                 <textarea
                   name="details"
-                  rows={3}
+                  rows={4}
                   value={addDetails}
                   onChange={handleAddDetailsChange}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
+                  className="w-full p-2 border rounded-lg"
                 />
+                <p className="text-xs mt-1">{countWords(addDetails)}/{MAX_WORDS} words</p>
               </div>
-              <button
-                onClick= {() => setAddDetails('')}
-                type="submit"
-                className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700"
-              >
-                Submit
-              </button>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => { setIsAddModalOpen(false); setAddDetails(''); }}
+                  className="px-4 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg">
+                  Submit
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -383,108 +437,143 @@ export default function DealerDashboard() {
 
       {/* Edit Listing Modal */}
       {editListing && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          role="dialog"
-          aria-modal="true"
-        >
+        <div className="fixed inset-0 flex items-center justify-center z-50" role="dialog">
           <div
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setEditListing(null)}
           />
-          <div className="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-lg w-full z-10">
+          <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] overflow-y-auto">
             <button
-              aria-label="Close modal"
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               onClick={() => setEditListing(null)}
+              className="absolute top-4 right-4 text-xl"
+              aria-label="Close"
             >
-              &times;
+              ×
             </button>
-            <h2 className="text-2xl font-bold mb-4">Edit Listing</h2>
-            <form onSubmit={handleEditListing}>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  defaultValue={editListing.title}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  required
-                />
+            <h2 className="text-2xl font-bold mb-6">Edit Listing</h2>
+            <form onSubmit={handleEditListing} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1">Title</label>
+                  <input
+                    name="title"
+                    defaultValue={editListing.title}
+                    required
+                    className="w-full p-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1">Price</label>
+                  <input
+                    name="price"
+                    defaultValue={editListing.price}
+                    required
+                    className="w-full p-2 border rounded-lg"
+                  />
+                </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Price
-                </label>
-                <input
-                  type="text"
-                  name="price"
-                  defaultValue={editListing.price}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  required
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block mb-1">Status</label>
+                  <select
+                    name="status"
+                    defaultValue={editListing.status}
+                    className="w-full p-2 border rounded-lg"
+                  >
+                    <option>Available</option>
+                    <option>Sold</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1">Car Type</label>
+                  <select
+                    name="car_type"
+                    defaultValue={editListing.car_type || ''}
+                    required
+                    className="w-full p-2 border rounded-lg"
+                  >
+                    <option value="">Select Car Type</option>
+                    <option>Sedan</option>
+                    <option>SUV</option>
+                    <option>Hatchback</option>
+                    <option>Truck</option>
+                    <option>Luxury</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1">Fuel Type</label>
+                  <select
+                    name="fuel_type"
+                    defaultValue={editListing.fuel_type || ''}
+                    required
+                    className="w-full p-2 border rounded-lg"
+                  >
+                    <option value="">Select Fuel Type</option>
+                    <option>Gasoline</option>
+                    <option>Diesel</option>
+                    <option>Electric</option>
+                    <option>Hybrid</option>
+                    <option>Plug-in Hybrid</option>
+                    <option>Hydrogen</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1">Transmission</label>
+                  <select
+                    name="transmission"
+                    defaultValue={editListing.transmission || ''}
+                    required
+                    className="w-full p-2 border rounded-lg"
+                  >
+                    <option value="">Select Transmission</option>
+                    <option value="Automatic">Automatic</option>
+                    <option value="Manual">Manual</option>
+                    <option value="CVT">CVT</option>
+                    <option value="Dual-Clutch">Dual-Clutch</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  defaultValue={editListing.status}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  required
-                >
-                  <option value="Available">Available</option>
-                  <option value="Sold">Sold</option>
-                </select>
-              </div>
-              {/* Image File Upload */}
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Upload Image
-                </label>
+              <div>
+                <label className="block mb-1">Image URL</label>
                 <input
-                  type="file"
-                  name="imageFile"
-                  accept="image/*"
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                />
-              </div>
-              {/* OR Image URL */}
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Or Image URL
-                </label>
-                <input
-                  type="text"
                   name="imageUrl"
-                  defaultValue={editListing.image}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-                  placeholder="http://example.com/myimage.jpg"
-                  required
+                  type="url"
+                  defaultValue=""
+                  placeholder={editListing.image}
+                  className="w-full p-2 border rounded-lg"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300">
-                  Details (max {MAX_WORDS} words)
-                </label>
+              <div>
+                <label className="block mb-1">Or Upload New Image</label>
+                <input name="imageFile" type="file" accept="image/*" className="w-full p-2 border rounded-lg" />
+              </div>
+              <div>
+                <label className="block mb-1">Details (max {MAX_WORDS} words)</label>
                 <textarea
                   name="details"
-                  rows={3}
+                  rows={4}
                   value={editDetails}
                   onChange={handleEditDetailsChange}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
                   required
+                  className="w-full p-2 border rounded-lg"
                 />
+                <p className="text-xs mt-1">{countWords(editDetails)}/{MAX_WORDS} words</p>
               </div>
-              <button
-                type="submit"
-                className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700"
-              >
-                Update Listing
-              </button>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setEditListing(null)}
+                  className="px-4 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg">
+                  Save Changes
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -492,4 +581,3 @@ export default function DealerDashboard() {
     </div>
   );
 }
-

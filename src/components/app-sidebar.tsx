@@ -59,6 +59,7 @@ const AppSidebar: React.FC = () => {
     email: string;
     avatar_url: string;
     role?: string;
+    type?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -83,7 +84,7 @@ const AppSidebar: React.FC = () => {
       // First try to find user by ID
       let { data, error } = await supabase
         .from('users')
-        .select('full_name, email, avatar_url, role')
+        .select('full_name, email, avatar_url, role, type')
         .eq('id', user.id)
         .single();
 
@@ -93,7 +94,7 @@ const AppSidebar: React.FC = () => {
         
         const { data: emailData, error: emailError } = await supabase
           .from('users')
-          .select('full_name, email, avatar_url, role')
+          .select('full_name, email, avatar_url, role, type')
           .eq('email', user.email)
           .single();
           
@@ -113,7 +114,8 @@ const AppSidebar: React.FC = () => {
           full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
           email: user.email,
           avatar_url: user.user_metadata?.avatar_url || '',
-          role: 'buyer', // Default role is buyer
+          role: 'buyer',
+          type: 'buyer', // Default type is buyer
           created_at: new Date().toISOString()
         };
         
@@ -131,7 +133,8 @@ const AppSidebar: React.FC = () => {
             full_name: newUserData.full_name,
             email: newUserData.email || '',
             avatar_url: newUserData.avatar_url,
-            role: 'buyer'
+            role: 'buyer',
+            type: 'buyer'
           });
         } else {
           // Set the user data after successful creation
@@ -139,7 +142,8 @@ const AppSidebar: React.FC = () => {
             full_name: newUserData.full_name,
             email: newUserData.email || '',
             avatar_url: newUserData.avatar_url,
-            role: 'buyer'
+            role: 'buyer',
+            type: 'buyer'
           });
           console.log('Created and set new user profile');
         }
@@ -158,7 +162,8 @@ const AppSidebar: React.FC = () => {
             full_name: user.user_metadata.full_name || user.user_metadata.name || 'User',
             email: user.email || '',
             avatar_url: user.user_metadata.avatar_url || '',
-            role: 'buyer' // Default role
+            role: 'buyer',
+            type: '', // Default role
           };
           
           setUserData(fallbackData);
@@ -174,7 +179,8 @@ const AppSidebar: React.FC = () => {
           full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
           email: user.email || '',
           avatar_url: user.user_metadata?.avatar_url || '',
-          role: 'buyer' // Default role
+          role: 'buyer',
+          type: '', // Default role
         });
       }
     }
@@ -203,12 +209,12 @@ const AppSidebar: React.FC = () => {
     return 'U';
   };
 
-  // Determine which nav items to show based on user role
+  // Determine which nav items to show based on user type
   const getNavItems = () => {
     const items = [...commonNavItems];
     
     // Add dealer-specific items if user is a dealer
-    if (userData?.role === 'dealer') {
+    if (userData?.type === 'dealer') {
       items.push(...dealerNavItems);
     }
     
@@ -357,7 +363,7 @@ const AppSidebar: React.FC = () => {
                   <div className="flex flex-col space-y-1 p-2">
                     <p className="text-sm font-medium">{userData?.full_name || 'User'}</p>
                     <p className="text-xs text-gray-500 truncate">{userData?.email || ''}</p>
-                    <p className="text-xs font-medium text-primary-600 capitalize">{userData?.role || 'buyer'}</p>
+                    <p className="text-xs font-medium text-primary-600 capitalize">{userData?.type}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
@@ -403,7 +409,7 @@ const AppSidebar: React.FC = () => {
               <div className="flex flex-col">
                 <p className="text-sm font-medium truncate">{userData?.full_name || 'User'}</p>
                 <p className="text-xs text-gray-500 truncate">{userData?.email || ''}</p>
-                <p className="text-xs font-medium text-primary-600 capitalize">{userData?.role || 'buyer'}</p>
+                <p className="text-xs font-medium text-primary-600 capitalize">{userData?.type || 'buyer'}</p>
               </div>
             </div>
           )}
