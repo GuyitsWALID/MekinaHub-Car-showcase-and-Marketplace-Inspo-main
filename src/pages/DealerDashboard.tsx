@@ -230,25 +230,55 @@ export default function DealerDashboard() {
     }
   };
 
-  // Delete listing
+  // Delete listing with improved error handling
   const handleDelete = async (id: number) => {
-    const { error } = await supabase.from('cars').delete().eq('id', id);
-    if (error) {
-      console.error('Delete error:', error.message);
-      alert(`Could not delete: ${error.message}`);
-    } else {
-      fetchListings();
+    try {
+      console.log('Attempting to delete listing with ID:', id);
+      
+      const { error, data } = await supabase
+        .from('cars')
+        .delete()
+        .eq('id', id)
+        .select();
+      
+      if (error) {
+        console.error('Delete error:', error);
+        alert(`Could not delete: ${error.message}`);
+        return false;
+      } else {
+        console.log('Successfully deleted listing:', data);
+        await fetchListings();
+        return true;
+      }
+    } catch (err) {
+      console.error('Unexpected error during deletion:', err);
+      alert(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
+      return false;
     }
   };
 
   // Mark as Sold
   const handleMarkSold = async (id: number) => {
-    const { error } = await supabase.from('cars').update({ status: 'Sold' }).eq('id', id);
-    if (error) {
-      console.error('Update error:', error.message);
-      alert(`Could not mark as sold: ${error.message}`);
-    } else {
-      fetchListings();
+    try{
+      console.log('Attempting to update status listing with ID:', id);
+      const { error, data } = await supabase
+       .from('cars')
+       .update({ status: 'Sold' })
+       .eq('id', id)
+       if (error) {
+        console.error('status error:', error);
+        alert(`Could not update status: ${error.message}`);
+        return false;
+      } else {
+        console.log('Successfully updated status of listing:', data);
+        await fetchListings();
+        return true;
+      }
+    }
+    catch(err){
+      console.error('Update error:', err);
+      alert(`Could not mark as sold: ${err}`);
+      return false;
     }
   };
 
@@ -305,7 +335,10 @@ export default function DealerDashboard() {
                   <Edit2 />
                 </button>
                 <button
-                  onClick={() => handleDelete(listing.id)}
+                  onClick={() => {
+                    console.log('Delete button clicked for listing ID:', listing.id);
+                    handleDelete(listing.id);
+                  }}
                   className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
                   title="Delete"
                 >

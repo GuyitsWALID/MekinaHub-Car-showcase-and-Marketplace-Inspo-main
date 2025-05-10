@@ -16,6 +16,7 @@ import CheckEmail from './pages/check _email';
 import AuthCallback from './components/AuthCallback';
 import Auth from './pages/Auth';
 import Setting from './pages/Setting';
+import Chat from './pages/Chat';
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="/settings" element={<Setting />} />
       </Route>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/chat/:dealerId" element={<Chat />} />
       <Route path="/confirmation" element={<Confirmation />} />
       <Route path="/checkemail" element={<CheckEmail />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
