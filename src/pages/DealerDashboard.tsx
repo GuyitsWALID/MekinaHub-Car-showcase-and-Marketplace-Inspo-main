@@ -301,7 +301,7 @@ export default function DealerDashboard() {
         {listings.map((listing) => (
           <div
             key={listing.id}
-            className="bg-white rounded-xl shadow-lg p-6 flex flex-col sm:flex-row gap-6 hover:shadow-xl transition"
+            className="bg-white  dark:bg-slate-800 rounded-xl shadow-lg p-6 flex flex-col sm:flex-row gap-6 hover:shadow-xl transition"
           >
             <img
               src={listing.image}

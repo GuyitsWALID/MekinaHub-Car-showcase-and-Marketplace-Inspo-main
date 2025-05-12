@@ -126,29 +126,74 @@ export default function Marketplace() {
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow mb-8">
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <SearchBar
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            onSearch={handleSearch}
-          />
-          <CustomFilter title="Model" onChange={setSelectedModel} />
-          <CustomFilter title="Year" onChange={setSelectedYear} />
-          <input
-            type="number"
-            placeholder="Min Price"
-            className="border rounded px-2 py-1 w-24"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Max Price"
-            className="border rounded px-2 py-1 w-24"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-          />
+<div className="relative w-full max-w-md">
+  <input
+    type="text"
+    value={searchQuery}
+    onChange={(e) => {
+      setSearchQuery(e.target.value);
+      handleSearch(e.target.value);
+    }}
+    placeholder="Search cars by make..."
+    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+  />
+  {searchQuery && (
+    <button
+      onClick={() => {
+        setSearchQuery('');
+        handleSearch('');
+      }}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+    >
+      ×
+    </button>
+  )}
+</div>
+          <div className="flex flex-col w-full max-w-xs gap-2">
+            <div className="flex justify-between text-sm">
+              <span>Price Range: ${minPrice || '0'} - ${maxPrice || '100000'}</span>
+            </div>
+            <div className="relative h-2">
+              <div className="absolute w-full h-2 bg-gray-200 rounded-lg dark:bg-gray-700" />
+              <div
+                className="absolute h-2 bg-blue-500 rounded-lg"
+                style={{
+                  left: `${((Number(minPrice) || 0) / 100000) * 100}%`,
+                  right: `${100 - ((Number(maxPrice) || 100000) / 100000) * 100}%`
+                }}
+              />
+              <input
+                type="range"
+                min="0"
+                max="100000"
+                step="1000"
+                value={minPrice || 0}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (Number(value) <= Number(maxPrice) || !maxPrice) {
+                    setMinPrice(value);
+                  }
+                }}
+                className="absolute w-full h-2 appearance-none pointer-events-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0"
+              />
+              <input
+                type="range"
+                min="0"
+                max="100000"
+                step="1000"
+                value={maxPrice || 100000}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (Number(value) >= Number(minPrice) || !minPrice) {
+                    setMaxPrice(value);
+                  }
+                }}
+                className="absolute w-full h-2 appearance-none pointer-events-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0"
+              />
+            </div>
+          </div>
           <select
-            className="border rounded px-2 py-1"
+            className="border dark:bg-slate-800 rounded px-2 py-1"
             value={currency}
             onChange={(e) =>
               setCurrency(e.target.value as "USD" | "ETB")
@@ -157,6 +202,7 @@ export default function Marketplace() {
             <option value="USD">USD</option>
             <option value="ETB">ETB</option>
           </select>
+          
         </div>
       </div>
 
@@ -261,6 +307,9 @@ export default function Marketplace() {
                         </span>
                       )}
                     </div>
+                    <div
+                    className="flex items-center justify-between mt-6"
+                    >
                     <Button
                       variant={
                         favorites.includes(car.id) ? "secondary" : "outline"
@@ -294,6 +343,8 @@ export default function Marketplace() {
                     >
                       Contact Dealer
                     </Button>
+                    </div>
+                    
                   </div>
                 </div>
               ))}

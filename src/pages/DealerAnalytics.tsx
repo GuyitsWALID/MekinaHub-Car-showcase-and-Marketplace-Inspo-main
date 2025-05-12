@@ -9,7 +9,9 @@ import {
   YAxis,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  AreaChart,
+  Area
 } from 'recharts';
 
 interface Stat {
@@ -27,46 +29,69 @@ export default function DealerAnalytics() {
   const [chartData, setChartData] = useState<Monthly[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dealerId, setDealerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get current dealer's ID from auth
+    const getCurrentDealer = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setDealerId(user?.id || null);
+    };
+    getCurrentDealer();
+  }, []);
 
   const loadStats = async () => {
+    if (!dealerId) return;
+
     try {
       setIsLoading(true);
       setError(null);
       
-      // Fetch counts with proper error handling
+      // Fetch counts specific to dealer
       const [listingsRes, favoritesRes, leadsRes] = await Promise.all([
-        supabase.from('cars').select('*', { count: 'exact' }),
-        supabase.from('favorites').select('*', { count: 'exact' }),
-        supabase.from('messages').select('*', { count: 'exact' })
+        supabase
+          .from('cars')
+          .select('*', { count: 'exact' })
+          .eq('dealer_id', dealerId),
+        supabase
+          .from('favorites')
+          .select('id, listing_id', { count: 'exact' })
+          .in('listing_id', 
+            (await supabase
+              .from('cars')
+              .select('id')
+              .eq('dealer_id', dealerId)
+            ).data?.map(car => car.id) || []
+          ),
+        supabase
+          .from('messages')
+          .select('*', { count: 'exact' })
+          .eq('dealer_id', dealerId)
       ]);
 
-      // Check for errors in any of the responses
       if (listingsRes.error) throw new Error(`Listings error: ${listingsRes.error.message}`);
       if (favoritesRes.error) throw new Error(`Favorites error: ${favoritesRes.error.message}`);
       if (leadsRes.error) throw new Error(`Leads error: ${leadsRes.error.message}`);
 
-      const totalListings = listingsRes.count ?? 0;
-      const totalFavorites = favoritesRes.count ?? 0;
-      const totalLeads = leadsRes.count ?? 0;
-
       setStats([
-        { title: 'Total Listings', value: totalListings },
-        { title: 'Total Favorites', value: totalFavorites },
-        { title: 'Leads Generated', value: totalLeads }
+        { title: 'Your Active Listings', value: listingsRes.count ?? 0 },
+        { title: 'Buyer Favorites', value: favoritesRes.count ?? 0 },
+        { title: 'Leads Generated', value: leadsRes.count ?? 0 }
       ]);
 
-      // Fetch view events for chart
+      // Fetch view events for dealer's listings
       const viewsRes = await supabase
         .from('post_engagements')
-        .select('created_at')
+        .select('created_at, cars!inner(*)')
         .eq('engagement_type', 'view')
+        .eq('cars.dealer_id', dealerId)
         .order('created_at', { ascending: true });
 
       if (viewsRes.error) throw new Error(`Views error: ${viewsRes.error.message}`);
 
       if (viewsRes.data) {
         const byMonth = viewsRes.data.reduce((acc: Record<string, number>, row) => {
-          const month = new Date(row.created_at).toLocaleString('en-US', { month: 'short' });
+          const month = new Date(row.created_at).toLocaleString('en-US', { month: 'short', year: '2-digit' });
           acc[month] = (acc[month] || 0) + 1;
           return acc;
         }, {});
@@ -84,112 +109,129 @@ export default function DealerAnalytics() {
   };
 
   useEffect(() => {
-    loadStats();
+    if (dealerId) {
+      loadStats();
 
-    // Improved realtime subscription for new messages (leads)
-    const messagesChannel = supabase
-      .channel('messages-channel')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          console.log('New message received:', payload);
-          loadStats();
-        }
-      )
-      .subscribe((status) => {
-        console.log('Messages subscription status:', status);
-      });
+      const messagesChannel = supabase
+        .channel('messages-channel')
+        .on(
+          'postgres_changes',
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'messages',
+            filter: `dealer_id=eq.${dealerId}`
+          },
+          () => loadStats()
+        )
+        .subscribe();
 
-    // Improved realtime subscription for view events
-    const viewsChannel = supabase
-      .channel('views-channel')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'post_engagements', filter: 'engagement_type=eq.view' },
-        (payload) => {
-          console.log('New view event:', payload);
-          loadStats();
-        }
-      )
-      .subscribe((status) => {
-        console.log('Views subscription status:', status);
-      });
+      const viewsChannel = supabase
+        .channel('views-channel')
+        .on(
+          'postgres_changes',
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'post_engagements',
+            filter: `engagement_type=eq.view`
+          },
+          () => loadStats()
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(messagesChannel);
-      supabase.removeChannel(viewsChannel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(messagesChannel);
+        supabase.removeChannel(viewsChannel);
+      };
+    }
+  }, [dealerId]);
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-10">
         <BlurText
-          text="Dealer Analytics"
+          text="Your Dealership Analytics"
           delay={150}
           animateBy="words"
           direction="top"
-          className="text-3xl font-bold text-gray-900 dark:text-white"
+          className="text-4xl font-bold text-gray-900 dark:text-white"
         />
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-8" role="alert">
           <p className="font-bold">Error</p>
           <p>{error}</p>
         </div>
       )}
 
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="flex justify-center items-center h-96">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
         </div>
       ) : (
         <>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {stats.map((s) => (
               <div
                 key={s.title}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform duration-300"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 transform hover:scale-105 transition-transform duration-300 border border-gray-100 dark:border-gray-700"
               >
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                   {s.value}
                 </div>
-                <div className="text-gray-600 dark:text-gray-400">{s.title}</div>
+                <div className="text-lg text-gray-600 dark:text-gray-300">{s.title}</div>
               </div>
             ))}
           </div>
 
-          {/* Monthly Views Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Growth in Views
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              Listing Views Over Time
             </h3>
             {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
+              <ResponsiveContainer width="100%" height={400}>
+                <AreaChart
                   data={chartData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="views" 
-                    stroke="#3B82F6" 
-                    strokeWidth={2}
-                    activeDot={{ r: 8 }} 
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#6B7280"
+                    tick={{ fill: '#6B7280' }}
                   />
-                </LineChart>
+                  <YAxis 
+                    stroke="#6B7280"
+                    tick={{ fill: '#6B7280' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#F3F4F6'
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="views"
+                    stroke="#3B82F6"
+                    fill="url(#colorViews)"
+                    strokeWidth={3}
+                  />
+                  <defs>
+                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex justify-center items-center h-64 text-gray-500">
-                No view data available
+              <div className="flex justify-center items-center h-64 text-gray-500 dark:text-gray-400">
+                No view data available yet
               </div>
             )}
           </div>
