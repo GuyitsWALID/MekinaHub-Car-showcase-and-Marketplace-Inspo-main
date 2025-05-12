@@ -30,12 +30,24 @@ export default function DealerAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dealerId, setDealerId] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get current dealer's ID from auth
+    // Get current user's ID and role from auth and users table
     const getCurrentDealer = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setDealerId(user?.id || null);
+
+      if (user?.id) {
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('type')
+          .eq('id', user.id)
+          .single();
+        if (!error && userData) {
+          setRole(userData.type);
+        }
+      }
     };
     getCurrentDealer();
   }, []);

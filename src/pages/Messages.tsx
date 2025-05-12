@@ -3,6 +3,7 @@ import { MessageSquare, Send, User, Check, CheckCheck } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../contexts/AuthContext'; // Assuming you have an auth context
 import { format, isToday, isYesterday } from 'date-fns';
+import { useLocation } from "react-router-dom";
 
 interface Contact {
   id: string;
@@ -24,12 +25,55 @@ interface Message {
 
 export default function Messages() {
   const { user } = useAuth() || { user: null };
+  const location = useLocation();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Parse dealerId from query string
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const dealerId = params.get("dealerId");
+    if (dealerId && contacts.length > 0) {
+      const dealerContact = contacts.find((c) => c.id === dealerId);
+      if (dealerContact) {
+        setSelectedContact(dealerContact);
+      } else {
+        // If dealer is not in contacts, fetch their info and add as contact
+        (async () => {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('id, full_name, avatar_url')
+            .eq('id', dealerId)
+            .single();
+          if (userData) {
+            setContacts((prev) => [
+              {
+                id: userData.id,
+                full_name: userData.full_name || 'Dealer',
+                avatar_url: userData.avatar_url,
+                last_message: 'No messages yet',
+                last_message_time: new Date().toISOString(),
+                unread_count: 0,
+              },
+              ...prev,
+            ]);
+            setSelectedContact({
+              id: userData.id,
+              full_name: userData.full_name || 'Dealer',
+              avatar_url: userData.avatar_url,
+              last_message: 'No messages yet',
+              last_message_time: new Date().toISOString(),
+              unread_count: 0,
+            });
+          }
+        })();
+      }
+    }
+  }, [location.search, contacts]);
   
   // Fetch contacts
   useEffect(() => {

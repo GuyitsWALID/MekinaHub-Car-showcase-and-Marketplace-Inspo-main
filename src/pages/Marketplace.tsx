@@ -202,7 +202,7 @@ export default function Marketplace() {
             <option value="USD">USD</option>
             <option value="ETB">ETB</option>
           </select>
-          
+
         </div>
       </div>
 
@@ -246,6 +246,12 @@ export default function Marketplace() {
             </div>
             <Button variant="outline" onClick={handleDeselectCar}>
               Back to Listings
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => navigate(`/messages?dealerId=${selectedCar.dealer_id}`)}
+            >
+              Contact Dealer
             </Button>
           </div>
           <div className="w-full md:w-1/2 h-[400px] flex items-center justify-center">
@@ -335,14 +341,11 @@ export default function Marketplace() {
                       variant="outline"
                       size="sm"
                       className="flex items-center gap-1 ml-2"
-                      onClick={() => {
-                        navigate(`/chat/${car.dealer_id}`);
-                        // Optionally, remove the alert if not needed
-                        // alert(`Contacting dealer with ID: ${car.dealer_id}`);
-                      }}
-                    >
-                      Contact Dealer
-                    </Button>
+                     
+                        onClick={() => navigate(`/messages?dealerId=${car.dealer_id}`)}
+                      >
+                        Contact Dealer
+                      </Button>
                     </div>
                     
                   </div>
