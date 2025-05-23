@@ -41,15 +41,11 @@ const CarCard: React.FC<CarCardProps> = ({
     >
       <div className="w-full flex justify-between items-start gap-2">
         <h2 className="text-[22px] leading-[26px] font-bold capitalize text-gray-900 dark:text-gray-100">
-          {make} {model} {year}
+          {make} {model} 
         </h2>
       </div>
 
-      <p className="flex mt-6 text-[32px] leading-[38px] font-extrabold text-gray-900 dark:text-gray-100">
-        <span className="self-start text-[14px] leading-[17px] font-semibold">$</span>
-        {carRent}
-        <span className="self-end text-[14px] leading-[17px] font-medium">/day</span>
-      </p>
+      
 
       <div className="relative w-full h-40 my-3 object-contain">
         <img
@@ -59,20 +55,16 @@ const CarCard: React.FC<CarCardProps> = ({
         />
       </div>
 
-      <div className="relative flex w-full mt-2 justify-between text-gray-500 dark:text-gray-400">
-        <div className="flex flex-col justify-center items-center gap-2">
+      <div className="flex gap-16 w-full mt-2 justify-center text-gray-500 dark:text-gray-400">
+        <div className="flex flex-col justify-center items-center gap-4">
           <img src="/steering-wheel.svg" width={20} height={20} alt="steering wheel" />
           <p className="text-[14px] leading-[17px]">
             {transmission === "a" ? "Automatic" : "Manual"}
           </p>
         </div>
-        <div className="flex flex-col justify-center items-center gap-2">
+        <div className="flex flex-col justify-center items-center gap-4">
           <img src="/tire.svg" width={20} height={20} alt="tire" />
           <p className="text-[14px] leading-[17px]">{drive.toUpperCase()}</p>
-        </div>
-        <div className="flex flex-col justify-center items-center gap-2">
-          <img src="/gas.svg" width={20} height={20} alt="gas" />
-          <p className="text-[14px] leading-[17px]">{city_mpg} MPG</p>
         </div>
       </div>
     </div>
