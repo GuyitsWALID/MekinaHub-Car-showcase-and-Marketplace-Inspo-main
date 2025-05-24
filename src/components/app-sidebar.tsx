@@ -283,7 +283,36 @@ const AppSidebar: React.FC = () => {
         {/* Main nav + bottom nav */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
-            {getNavItems().map((item) => {
+            {commonNavItems.map((item) => {
+              const active = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={isMobile ? toggle : undefined}
+                  className={cn(
+                    "group flex items-center px-3 py-2 rounded-md transition-colors",
+                    active
+                      ? "bg-primary-100 text-primary-600"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800",
+                    collapsed && "justify-center"
+                  )}
+                >
+                  <item.icon
+                    className={cn(
+                      "h-5 w-5",
+                      active
+                        ? "text-primary-600"
+                        : "text-gray-500 dark:text-gray-400 group-hover:text-primary-600"
+                    )}
+                  />
+                  {!collapsed && <span className="ml-3 flex-1">{item.label}</span>}
+                </Link>
+              );
+            })}
+
+            {/* Show dealer-specific nav items only for users with dealer role */}
+            {userData?.role === 'dealer' && dealerNavItems.map((item) => {
               const active = location.pathname === item.path;
               return (
                 <Link
@@ -311,7 +340,6 @@ const AppSidebar: React.FC = () => {
               );
             })}
           </nav>
-
           {/* push these to bottom */}
           <nav className="px-2 pb-4 space-y-1">
             {navBottomItems.map((item) => {
@@ -409,7 +437,7 @@ const AppSidebar: React.FC = () => {
               <div className="flex flex-col">
                 <p className="text-sm font-medium truncate">{userData?.full_name || 'User'}</p>
                 <p className="text-xs text-gray-500 truncate">{userData?.email || ''}</p>
-                <p className="text-xs font-medium text-primary-600 capitalize">{userData?.type || 'buyer'}</p>
+                <p className="text-xs font-medium text-primary-600 capitalize">{userData?.role || 'buyer'}</p>
               </div>
             </div>
           )}

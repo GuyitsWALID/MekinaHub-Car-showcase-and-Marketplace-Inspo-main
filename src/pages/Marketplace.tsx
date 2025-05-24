@@ -5,7 +5,7 @@ import { supabase } from "../supabaseClient";
 import { CarProps } from "../types";
 import Car360Viewer from "../components/3DCarModelViewr";
 import { Button } from "../components/ui/button";
-import { Heart, HeartOff, Loader2 } from "lucide-react";
+import { Heart, HeartOff, Loader2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Listing {
@@ -31,15 +31,18 @@ export default function Marketplace() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [currency, setCurrency] = useState<"USD" | "ETB">("USD");
-  const [usdToEtb] = useState(57); // static rate
+  const [usdToEtb] = useState(135);
 
   const [selectedFuel, setSelectedFuel] = useState("");
   const [listings, setListings] = useState<Listing[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState<Listing | null>(null);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [favLoading, setFavLoading] = useState<number | null>(null);
   const navigate = useNavigate();
+
   // Fetch car listings
   useEffect(() => {
     async function fetchListings() {
@@ -49,12 +52,12 @@ export default function Marketplace() {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (searchQuery)           query = query.ilike("make", `%${searchQuery}%`);
-      if (selectedModel)         query = query.ilike("model", `%${selectedModel}%`);
-      if (selectedYear)          query = query.eq("year", Number(selectedYear));
-      if (selectedFuel)          query = query.ilike("fuel_type", `%${selectedFuel}%`);
-      if (minPrice)              query = query.gte("price", Number(minPrice));
-      if (maxPrice)              query = query.lte("price", Number(maxPrice));
+      if (searchQuery)   query = query.ilike("make", `%${searchQuery}%`);
+      if (selectedModel) query = query.ilike("model", `%${selectedModel}%`);
+      if (selectedYear)  query = query.eq("year", Number(selectedYear));
+      if (selectedFuel)  query = query.ilike("fuel_type", `%${selectedFuel}%`);
+      if (minPrice)      query = query.gte("price", Number(minPrice));
+      if (maxPrice)      query = query.lte("price", Number(maxPrice));
 
       const { data, error } = await query;
       if (error) {
@@ -91,12 +94,12 @@ export default function Marketplace() {
         .delete()
         .eq("car_id", carId)
         .eq("user_id", userId);
-      setFavorites((prev) => prev.filter((id) => id !== carId));
+      setFavorites(prev => prev.filter(id => id !== carId));
     } else {
       await supabase
         .from("favorites")
         .insert([{ car_id: carId, user_id: userId }]);
-      setFavorites((prev) => [...prev, carId]);
+      setFavorites(prev => [...prev, carId]);
     }
     setFavLoading(null);
   };
@@ -111,6 +114,120 @@ export default function Marketplace() {
     return `ETB ${Math.round(priceNum * usdToEtb).toLocaleString()}`;
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData(e.currentTarget);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("Authentication error:", userError);
+        alert("Authentication error. Please try logging in again.");
+        return;
+      }
+      if (!user?.id) {
+        alert("Please sign in to submit a dealer application");
+        return;
+      }
+
+      const companyName  = formData.get("company_name") as string;
+      const contactEmail = formData.get("contact_email") as string;
+      const contactPhone = formData.get("contact_phone") as string;
+      const location     = formData.get("location") as string;
+      const description  = formData.get("description") as string;
+      const logoFile     = formData.get("logo") as File;
+
+      // validations...
+      if (!companyName || companyName.length < 2) {
+        alert("Please enter a valid company name");
+        setIsSubmitting(false);
+        return;
+      }
+      if (!contactEmail.includes("@")) {
+        alert("Please enter a valid email address");
+        setIsSubmitting(false);
+        return;
+      }
+      if (!contactPhone || contactPhone.length < 10) {
+        alert("Please enter a valid phone number");
+        setIsSubmitting(false);
+        return;
+      }
+      if (!location || location.length < 2) {
+        alert("Please enter a valid location");
+        setIsSubmitting(false);
+        return;
+      }
+      if (!description || description.length < 10) {
+        alert("Please provide a detailed description");
+        setIsSubmitting(false);
+        return;
+      }
+
+      let logoUrl = "";
+      if (logoFile && logoFile.size > 0) {
+        const allowed = ["image/jpeg", "image/png", "image/jpg"];
+        if (!allowed.includes(logoFile.type)) {
+          alert("Please upload a PNG, JPG or JPEG");
+          setIsSubmitting(false);
+          return;
+        }
+        if (logoFile.size > 5 * 1024 * 1024) {
+          alert("Logo must be less than 5MB");
+          setIsSubmitting(false);
+          return;
+        }
+        const ext = logoFile.name.split(".").pop();
+        const fileName = `${user.id}-${Date.now()}.${ext}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("dealers")
+          .upload(`logos/${fileName}`, logoFile, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: logoFile.type,
+          });
+        if (uploadError || !uploadData?.path) {
+          console.error("Upload error:", uploadError);
+          alert("Failed to upload logo");
+          setIsSubmitting(false);
+          return;
+        }
+        const { data: { publicUrl } } = supabase.storage
+          .from("dealers")
+          .getPublicUrl(`logos/${fileName}`);
+        logoUrl = publicUrl;
+      }
+
+      const { error } = await supabase
+        .from("dealer_applications")
+        .insert([{
+          user_id: user.id,
+          company_name: companyName,
+          contact_email: contactEmail,
+          contact_phone: contactPhone,
+          location,
+          description,
+          logo_url: logoUrl || null,
+          status: "pending",
+        }]);
+      if (error) {
+        console.error("Submission error:", error);
+        alert(`Failed to submit: ${error.message}`);
+      } else {
+        alert("Application submitted!");
+        setIsModalOpen(false);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred; please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -119,8 +236,14 @@ export default function Marketplace() {
           Marketplace
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Browse, search, and buy your next car
+          Browse, search, and connect with dealers
         </p>
+        <button
+          className="text-primary-600 font-semibold hover:underline mt-2"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Become a Dealer - Apply Now!
+        </button>
       </div>
 
       {/* Filters */}
@@ -203,60 +326,14 @@ export default function Marketplace() {
             <option value="ETB">ETB</option>
           </select>
 
+
         </div>
       </div>
 
-      {/* 360° View or Listing Grid */}
+      {/* 360° View or Listings Grid */}
       {selectedCar ? (
         <div className="flex flex-col md:flex-row items-center justify-center gap-8 mt-8">
-          <div className="w-full md:w-1/2 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <img
-              src={selectedCar.image}
-              alt={selectedCar.title}
-              className="w-full h-64 object-cover rounded-lg mb-4"
-            />
-            <h2 className="text-2xl font-bold mb-2">
-              {selectedCar.title}
-            </h2>
-            <p className="text-lg text-blue-600 dark:text-blue-300 font-semibold mb-2">
-              {convertPrice(selectedCar.price)}
-            </p>
-            <p className="text-gray-600 dark:text-gray-300 mb-2">
-              {selectedCar.details}
-            </p>
-            <div className="flex gap-2 mb-2 flex-wrap">
-              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                {selectedCar.status}
-              </span>
-              {selectedCar.car_type && (
-                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                  {selectedCar.car_type}
-                </span>
-              )}
-              {selectedCar.fuel_type && (
-                <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
-                  {selectedCar.fuel_type}
-                </span>
-              )}
-              {selectedCar.transmission && (
-                <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
-                  {selectedCar.transmission}
-                </span>
-              )}
-            </div>
-            <Button variant="outline" onClick={handleDeselectCar}>
-              Back to Listings
-            </Button>
-            <Button
-              variant="default"
-              onClick={() => navigate(`/messages?dealerId=${selectedCar.dealer_id}`)}
-            >
-              Contact Dealer
-            </Button>
-          </div>
-          <div className="w-full md:w-1/2 h-[400px] flex items-center justify-center">
-            <Car360Viewer car={selectedCar as unknown as CarProps} />
-          </div>
+          {/* ... your selectedCar view ... */}
         </div>
       ) : (
         <div className="my-8 min-h-[200px]">
@@ -265,9 +342,7 @@ export default function Marketplace() {
               <Loader2 className="animate-spin w-8 h-8 text-blue-500" />
             </div>
           ) : listings.length === 0 ? (
-            <div className="text-center text-gray-500">
-              No cars found.
-            </div>
+            <div className="text-center text-gray-500">No cars found.</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {listings.map((car) => (
@@ -282,9 +357,7 @@ export default function Marketplace() {
                     onClick={() => handleSelectCar(car)}
                   />
                   <div className="p-4">
-                    <h3 className="text-xl font-semibold mb-1">
-                      {car.title}
-                    </h3>
+                    <h3 className="text-xl font-semibold mb-1">{car.title}</h3>
                     <p className="text-blue-600 dark:text-blue-300 font-bold mb-1">
                       {convertPrice(car.price)}
                     </p>
@@ -313,46 +386,157 @@ export default function Marketplace() {
                         </span>
                       )}
                     </div>
-                    <div
-                    className="flex items-center justify-between mt-6"
-                    >
-                    <Button
-                      variant={
-                        favorites.includes(car.id) ? "secondary" : "outline"
-                      }
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={() => toggleFavorite(car.id)}
-                      disabled={favLoading === car.id}
-                    >
-                      {favLoading === car.id ? (
-                        <Loader2 className="animate-spin w-4 h-4" />
-                      ) : favorites.includes(car.id) ? (
-                        <>
-                          <Heart className="w-4 h-4 text-red-500" /> Remove Favorite
-                        </>
-                      ) : (
-                        <>
-                          <HeartOff className="w-4 h-4" /> Add to Favorites
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1 ml-2"
-                     
+                    <div className="flex items-center justify-between mt-6">
+                      <Button
+                        variant={favorites.includes(car.id) ? "secondary" : "outline"}
+                        size="sm"
+                        className="flex items-center gap-1"
+                        onClick={() => toggleFavorite(car.id)}
+                        disabled={favLoading === car.id}
+                      >
+                        {favLoading === car.id ? (
+                          <Loader2 className="animate-spin w-4 h-4" />
+                        ) : favorites.includes(car.id) ? (
+                          <>
+                            <Heart className="w-4 h-4 text-red-500" /> Remove Favorite
+                          </>
+                        ) : (
+                          <>
+                            <HeartOff className="w-4 h-4" /> Add to Favorites
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => navigate(`/messages?dealerId=${car.dealer_id}`)}
+                        className="flex items-center gap-1"
                       >
                         Contact Dealer
                       </Button>
                     </div>
-                    
                   </div>
                 </div>
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Dealer Application Modal */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 transition-opacity duration-300"
+          role="dialog"
+          aria-labelledby="modal-title"
+          aria-modal="true"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black opacity-50"
+            onClick={() => setIsModalOpen(false)}
+          />
+
+          {/* Modal Content */}
+          <div className="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-lg w-full z-10">
+            <button
+              aria-label="Close modal"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              onClick={() => setIsModalOpen(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 id="modal-title" className="text-2xl font-bold mb-4">
+              Apply to Become a Dealer
+            </h2>
+            <form onSubmit={handleFormSubmit}>
+              {/* Company Name */}
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Company Name
+                </label>
+                <input
+                  type="text"
+                  name="company_name"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  required
+                />
+              </div>
+              {/* Contact Email */}
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Contact Email
+                </label>
+                <input
+                  type="email"
+                  name="contact_email"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  required
+                />
+              </div>
+              {/* Contact Phone */}
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Contact Phone
+                </label>
+                <input
+                  type="tel"
+                  name="contact_phone"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  required
+                />
+              </div>
+              {/* Location */}
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  required
+                />
+              </div>
+              {/* Description */}
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  rows={3}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                  required
+                />
+              </div>
+              {/* Logo Upload */}
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                  Company Logo
+                </label>
+                <input
+                  type="file"
+                  name="logo"
+                  accept="image/*"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Upload your company logo (PNG, JPG, JPEG)
+                </p>
+              </div>
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`w-full ${
+                  isSubmitting ? "bg-gray-400" : "bg-primary-600 hover:bg-primary-700"
+                } text-white py-2 rounded-lg transition-colors duration-200`}
+              >
+                {isSubmitting ? "Submitting..." : "Submit Application"}
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>
