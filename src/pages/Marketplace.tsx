@@ -7,8 +7,9 @@ import Car360Viewer from "../components/3DCarModelViewr";
 import { Button } from "../components/ui/button";
 import { Heart, HeartOff, Loader2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // Import useAuth
 
-interface Listing {
+export interface Listing {
   id: number;
   title: string;
   price: string;
@@ -25,6 +26,7 @@ interface Listing {
 }
 
 export default function Marketplace() {
+  const { user } = useAuth(); // Use the useAuth hook
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -71,34 +73,43 @@ export default function Marketplace() {
     fetchListings();
   }, [searchQuery, selectedModel, selectedYear, selectedFuel, minPrice, maxPrice]);
 
-  // Fetch favorites (demo userId = 1)
+  // Fetch favorites
   useEffect(() => {
-    async function fetchFavorites() {
-      const userId = 1;
-      const { data } = await supabase
-        .from("favorites")
-        .select("car_id")
-        .eq("user_id", userId);
-      if (data) setFavorites(data.map((f: any) => f.car_id));
+    async function fetchInitialFavorites() {
+      if (user) { // Check if user is logged in
+        const { data } = await supabase
+          .from("favorites")
+          .select("car_id")
+          .eq("user_id", user.id); // Use dynamic user.id
+        if (data) setFavorites(data.map((f: any) => f.car_id));
+        else setFavorites([]); // Ensure favorites is cleared if no data
+      } else {
+        setFavorites([]); // Clear favorites if no user
+      }
     }
-    fetchFavorites();
-  }, []);
+    fetchInitialFavorites();
+  }, [user]); // Add user to dependency array
 
   // Toggle favorite
   const toggleFavorite = async (carId: number) => {
+    if (!user) {
+      // Optionally, trigger a login prompt or alert
+      alert("Please log in to add favorites.");
+      return;
+    }
     setFavLoading(carId);
-    const userId = 1;
+    // user.id is used here
     if (favorites.includes(carId)) {
       await supabase
         .from("favorites")
         .delete()
         .eq("car_id", carId)
-        .eq("user_id", userId);
+        .eq("user_id", user.id); // Use dynamic user.id
       setFavorites(prev => prev.filter(id => id !== carId));
     } else {
       await supabase
         .from("favorites")
-        .insert([{ car_id: carId, user_id: userId }]);
+        .insert([{ car_id: carId, user_id: user.id }]); // Use dynamic user.id
       setFavorites(prev => [...prev, carId]);
     }
     setFavLoading(null);
@@ -392,7 +403,7 @@ export default function Marketplace() {
                         size="sm"
                         className="flex items-center gap-1"
                         onClick={() => toggleFavorite(car.id)}
-                        disabled={favLoading === car.id}
+                        disabled={favLoading === car.id || !user} // Disable if no user
                       >
                         {favLoading === car.id ? (
                           <Loader2 className="animate-spin w-4 h-4" />

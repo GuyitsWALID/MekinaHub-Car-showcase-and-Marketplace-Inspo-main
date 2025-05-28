@@ -1,40 +1,56 @@
 // src/pages/Favorites.tsx
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-
-interface Listing {
-  id: number;
-  title: string;
-  price: string;
-  image: string;
-  status: string;
-  details: string;
-}
+import { useAuth } from '../../contexts/AuthContext';
+import { type Listing } from './Marketplace'; // Import Listing type
 
 export default function Favorites() {
+  const { user, loading: authLoading } = useAuth();
   const [favorites, setFavorites] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   const fetchFavorites = async () => {
-    // Assumes that the "favorites" table has a relationship to "listings"
+    if (!user) {
+      setFavorites([]);
+      setDataLoading(false);
+      return;
+    }
+
+    setDataLoading(true);
+    // Query 'cars' table through 'favorites' table
     const { data, error } = await supabase
       .from('favorites')
-      .select('*, listings(*)');
+      .select('cars(*)') // Select all columns from the related 'cars' table
+      .eq('user_id', user.id); // Filter by the current user's ID
+
     if (error) {
       console.error('Error fetching favorites:', error);
+      setFavorites([]);
     } else if (data) {
-      // Map the returned favorites to their related listing objects
-      const favoriteListings = data.map((fav: any) => fav.listings);
-      setFavorites(favoriteListings);
+      // Map the returned favorites to their related car objects.
+      // Filter out any entries where the car might be null (e.g., if a car was deleted but the favorite entry remained).
+      const favoriteCars = data.map((fav: any) => fav.cars).filter(car => car !== null);
+      setFavorites(favoriteCars);
     }
-    setLoading(false);
+    setDataLoading(false);
   };
 
   useEffect(() => {
-    fetchFavorites();
-  }, []);
+    // We want to fetch favorites when the user is available,
+    // or clear them if the user logs out or auth state is resolved without a user.
+    if (user) {
+      fetchFavorites();
+    } else if (!authLoading) { // User is not logged in, and authentication is not loading
+      setFavorites([]);
+      setDataLoading(false);
+    }
+    // Explicitly not depending on fetchFavorites to avoid re-runs if the function reference changes.
+    // The logic within fetchFavorites and its surrounding useEffect handles user and authLoading changes.
+  }, [user, authLoading]);
 
-  if (loading) return <div>Loading your favorites...</div>;
+  if (authLoading) return <div>Authenticating...</div>;
+  if (!user) return <div className="max-w-7xl mx-auto p-4 text-center"><p>Please log in to view your favorites.</p></div>;
+  if (dataLoading) return <div>Loading your favorites...</div>;
 
   return (
     <div className="max-w-7xl mx-auto p-4">
