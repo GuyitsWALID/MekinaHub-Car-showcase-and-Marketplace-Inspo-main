@@ -12,26 +12,10 @@ import {
   Paperclip,
   Loader2,
   Smile,
+  AlertTriangle,
 } from 'lucide-react';
 import Picker from 'emoji-picker-react';
-
-interface Contact {
-  id: string;
-  name: string;
-  avatar_url: string | null;
-}
-
-interface Message {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  dealer_id: string;
-  message: string;
-  is_read: boolean;
-  created_at: string;
-  type: 'text' | 'image' | 'file';
-  file_url: string | null;
-}
+import type { Contact, Message } from '../types';
 
 export default function Messages() {
   const auth = useAuth();
@@ -49,6 +33,7 @@ export default function Messages() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -80,6 +65,10 @@ export default function Messages() {
           name: u.full_name,
           avatar_url: u.avatar_url,
         });
+        setContactError(null); // Clear any previous error
+      } else {
+        setContact(null);
+        setContactError("Dealer information not available.");
       }
 
       // Load thread
@@ -91,6 +80,36 @@ export default function Messages() {
         )
         .order('created_at', { ascending: true });
       setMessages(msgs ?? []);
+
+      // Real-time subscription for new messages
+      const messageSubscription = supabase
+        .channel(`messages-thread-${user.id}-${dealerId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `or(and(sender_id.eq.${user.id},receiver_id.eq.${dealerId}),and(sender_id.eq.${dealerId},receiver_id.eq.${user.id}))`,
+          },
+          (payload) => {
+            const newMessage = payload.new as Message;
+            setMessages((prevMessages) => {
+              if (prevMessages.find(msg => msg.id === newMessage.id)) {
+                return prevMessages; // Already exists
+              }
+              return [...prevMessages, newMessage];
+            });
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscription on component unmount or when dealerId/user.id changes
+      return () => {
+        if (messageSubscription) {
+          supabase.removeChannel(messageSubscription);
+        }
+      };
     })();
   }, [dealerId, user.id]);
 
@@ -132,6 +151,17 @@ export default function Messages() {
   const onEmojiClick = (_: any, emoji: any) => {
     setNewMessage(m => m + emoji.emoji);
   };
+
+  if (contactError) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center text-red-500">
+        <AlertTriangle className="w-12 h-12 mb-2" />
+        <p>{contactError}</p>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Please check the dealer ID or try again later.</p>
+        {/* Optionally, add a button to go back or to the marketplace */}
+      </div>
+    );
+  }
 
   if (!contact) {
     return (

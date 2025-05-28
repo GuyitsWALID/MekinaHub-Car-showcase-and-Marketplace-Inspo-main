@@ -67,3 +67,20 @@ export interface SearchManuFacturerProps {
   manufacturer: string;
   setManuFacturer: (manufacturer: string) => void;
 }
+export interface Contact {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+}
+
+export interface Message {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  dealer_id: string; // Retaining this as it's in the original Messages.tsx
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  type: 'text' | 'image' | 'file';
+  file_url: string | null;
+}

@@ -17,6 +17,7 @@ import AuthCallback from './components/AuthCallback';
 import Auth from './pages/Auth';
 import Setting from './pages/Setting';
 import Chat from './pages/Chat';
+import Favourite from './pages/Favourite';
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
           <Route path="/messages" element={<Messages />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/dealerdashboard" element={<DealerDashboard />} />
+          <Route path="/favourite" element={<Favourite/>}/>
           <Route path="/dealeranalytics" element={<DealerAnalytics />} />
           <Route path="/settings" element={<Setting />} />
       </Route>

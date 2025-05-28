@@ -286,6 +286,7 @@ export default function DealerDashboard() {
     <div className="max-w-7xl mx-auto p-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-10 gap-4">
+        
         <h1 className="text-3xl font-bold tracking-tight">My Listings</h1>
         <button
           onClick={() => setIsAddModalOpen(true)}

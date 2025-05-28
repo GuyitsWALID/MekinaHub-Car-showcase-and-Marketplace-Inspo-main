@@ -14,7 +14,9 @@ import {
   BarChart2,
   List,
   ListChecks,
-  ListChecksIcon
+  ListChecksIcon,
+  Heart,
+
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
@@ -36,6 +38,7 @@ const commonNavItems = [
   { icon: GitCompareIcon, label: "Compare", path: "/compare" },
   { icon: Store, label: "Marketplace", path: "/marketplace" },
   { icon: Users, label: "Messages", path: "/messages" },
+  {icon: Heart, label: "Favorites", path: "/favourite"}
 ];
 
 // Dealer-specific navigation items

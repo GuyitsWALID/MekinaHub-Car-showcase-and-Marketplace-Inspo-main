@@ -44,6 +44,7 @@
     "emoji-picker-react": "^4.12.2",
     "framer-motion": "^12.5.0",
     "gsap": "^3.12.7",
+    "intro.js": "^7.2.0",
     "lucide-react": "^0.344.0",
     "openai": "^4.87.3",
     "react": "^18.3.1",

@@ -7,6 +7,7 @@ import Car360Viewer from "../components/3DCarModelViewr";
 import { Button } from "../components/ui/button";
 import { Heart, HeartOff, Loader2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import GradientText from "../components/GradientText";
 
 interface Listing {
   id: number;
@@ -74,34 +75,65 @@ export default function Marketplace() {
   // Fetch favorites (demo userId = 1)
   useEffect(() => {
     async function fetchFavorites() {
-      const userId = 1;
-      const { data } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
         .from("favorites")
-        .select("car_id")
-        .eq("user_id", userId);
-      if (data) setFavorites(data.map((f: any) => f.car_id));
+        .select("listing_id")
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error fetching favorites:", error);
+        return;
+      }
+
+      if (data) {
+        setFavorites(data.map(f => f.listing_id));
+      }
     }
     fetchFavorites();
   }, []);
 
   // Toggle favorite
-  const toggleFavorite = async (carId: number) => {
-    setFavLoading(carId);
-    const userId = 1;
-    if (favorites.includes(carId)) {
-      await supabase
-        .from("favorites")
-        .delete()
-        .eq("car_id", carId)
-        .eq("user_id", userId);
-      setFavorites(prev => prev.filter(id => id !== carId));
-    } else {
-      await supabase
-        .from("favorites")
-        .insert([{ car_id: carId, user_id: userId }]);
-      setFavorites(prev => [...prev, carId]);
+  const toggleFavorite = async (listingId: number) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Please sign in to add favorites");
+      return;
     }
-    setFavLoading(null);
+
+    setFavLoading(listingId);
+    
+    try {
+      if (favorites.includes(listingId)) {
+        // Remove from favorites
+        const { error } = await supabase
+          .from("favorites")
+          .delete()
+          .eq("listing_id", listingId)
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+        setFavorites(prev => prev.filter(id => id !== listingId));
+      } else {
+        // Add to favorites
+        const { error } = await supabase
+          .from("favorites")
+          .insert([{ 
+            listing_id: listingId, 
+            user_id: user.id 
+          }]);
+
+        if (error) throw error;
+        setFavorites(prev => [...prev, listingId]);
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      alert("Failed to update favorites");
+    } finally {
+      setFavLoading(null);
+    }
   };
 
   const handleSearch = (q: string) => setSearchQuery(q);
@@ -232,9 +264,15 @@ export default function Marketplace() {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex flex-col items-center mb-10">
-        <h1 className="text-4xl font-bold text-blue-700 dark:text-blue-300 mb-2">
+        
+      <GradientText
+          colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+          animationSpeed={3}
+          showBorder={false}
+          className="font-sans font-extrabold text-4xl"
+        >
           Marketplace
-        </h1>
+        </GradientText>
         <p className="text-lg text-gray-600 dark:text-gray-300">
           Browse, search, and connect with dealers
         </p>

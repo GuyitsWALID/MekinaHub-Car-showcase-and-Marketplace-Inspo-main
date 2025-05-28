@@ -13,6 +13,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
+import GradientText from '../components/GradientText';
 
 interface Stat {
   title: string;
@@ -162,13 +163,14 @@ export default function DealerAnalytics() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="flex flex-col md:flex-row justify-between items-center mb-10">
-        <BlurText
-          text="Your Dealership Analytics"
-          delay={150}
-          animateBy="words"
-          direction="top"
-          className="text-4xl font-bold text-gray-900 dark:text-white"
-        />
+      <GradientText
+          colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+          animationSpeed={3}
+          showBorder={false}
+          className="font-sans font-extrabold text-4xl"
+        >
+          Dealer Analytics
+        </GradientText>
       </div>
 
       {error && (
