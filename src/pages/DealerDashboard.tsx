@@ -54,6 +54,8 @@ export default function DealerDashboard() {
     const dealer_id = dealerData.id;
 
     // Fetch only listings for this dealer
+    // We fetch only the current user's listings to enforce security via RLS;
+    // avoids loading unnecessary rows and reduces client-side filtering.
     const { data, error } = await supabase
       .from('cars')
       .select('*')

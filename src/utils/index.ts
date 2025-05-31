@@ -24,7 +24,8 @@ export const deleteSearchParams = (type: string): string => {
   newSearchParams.delete(type.toLowerCase());
   return `${window.location.pathname}?${newSearchParams.toString()}`;
 };
-
+// RapidAPI sometimes returns empty specs for older models;
+// fallback to our local cached data if that happens.
 export async function fetchCars(filters: FilterProps): Promise<any> {
   const { make, year, model } = filters;
 
