@@ -364,42 +364,42 @@ export default function DealerDashboard() {
 
       {/* Add Listing Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" role="dialog">
+        <div className="fixed inset-0 flex items-center justify-center z-50 .dark:bg-slate-800" role="dialog">
           <div
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setIsAddModalOpen(false)}
           />
-          <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsAddModalOpen(false)}
-              className="absolute top-4 right-4 text-xl"
+              className="absolute top-4 right-4 text-xl text-gray-600 dark:text-gray-300"
               aria-label="Close"
             >
               ×
             </button>
-            <h2 className="text-2xl font-bold mb-6">Add New Listing</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Add New Listing</h2>
             <form onSubmit={handleAddListing} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1">Title</label>
-                  <input name="title" required className="w-full p-2 border rounded-lg" />
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Title</label>
+                  <input name="title" required className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
                 </div>
                 <div>
-                  <label className="block mb-1">Price</label>
-                  <input name="price" required className="w-full p-2 border rounded-lg" />
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Price</label>
+                  <input name="price" required className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block mb-1">Status</label>
-                  <select name="status" defaultValue="Available" className="w-full p-2 border rounded-lg">
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Status</label>
+                  <select name="status" defaultValue="Available" className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white">
                     <option>Available</option>
                     <option>Sold</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1">Car Type</label>
-                  <select name="car_type" required className="w-full p-2 border rounded-lg">
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Car Type</label>
+                  <select name="car_type" required className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white">
                     <option value="">Select Car Type</option>
                     <option>Sedan</option>
                     <option>SUV</option>
@@ -410,8 +410,8 @@ export default function DealerDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1">Fuel Type</label>
-                  <select name="fuel_type" required className="w-full p-2 border rounded-lg">
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Fuel Type</label>
+                  <select name="fuel_type" required className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white">
                     <option value="">Select Fuel Type</option>
                     <option>Gasoline</option>
                     <option>Diesel</option>
@@ -423,8 +423,8 @@ export default function DealerDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1">Transmission</label>
-                  <select name="transmission" required className="w-full p-2 border rounded-lg">
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Transmission</label>
+                  <select name="transmission" required className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white">
                     <option value="">Select Transmission</option>
                     <option value="Automatic">Automatic</option>
                     <option value="Manual">Manual</option>
@@ -435,34 +435,34 @@ export default function DealerDashboard() {
                 </div>
               </div>
               <div>
-                <label className="block mb-1">Image URL</label>
-                <input name="imageUrl" type="url" placeholder="https://..." className="w-full p-2 border rounded-lg" />
+                <label className="block mb-1 text-gray-700 dark:text-gray-200">Image URL</label>
+                <input name="imageUrl" type="url" placeholder="https://..." className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-gray-400" />
               </div>
               <div>
-                <label className="block mb-1">Or Upload Image</label>
-                <input name="imageFile" type="file" accept="image/*" className="w-full p-2 border rounded-lg" />
+                <label className="block mb-1 text-gray-700 dark:text-gray-200">Or Upload Image</label>
+                <input name="imageFile" type="file" accept="image/*" className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
               </div>
               <div>
-                <label className="block mb-1">Details (max {MAX_WORDS} words)</label>
+                <label className="block mb-1 text-gray-700 dark:text-gray-200">Details (max {MAX_WORDS} words)</label>
                 <textarea
                   name="details"
                   rows={4}
                   value={addDetails}
                   onChange={handleAddDetailsChange}
                   required
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 />
-                <p className="text-xs mt-1">{countWords(addDetails)}/{MAX_WORDS} words</p>
+                <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">{countWords(addDetails)}/{MAX_WORDS} words</p>
               </div>
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => { setIsAddModalOpen(false); setAddDetails(''); }}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border rounded-lg text-gray-700 dark:text-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
                   Submit
                 </button>
               </div>
@@ -478,55 +478,55 @@ export default function DealerDashboard() {
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setEditListing(null)}
           />
-          <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setEditListing(null)}
-              className="absolute top-4 right-4 text-xl"
+              className="absolute top-4 right-4 text-xl text-gray-600 dark:text-gray-300"
               aria-label="Close"
             >
               ×
             </button>
-            <h2 className="text-2xl font-bold mb-6">Edit Listing</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit Listing</h2>
             <form onSubmit={handleEditListing} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1">Title</label>
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Title</label>
                   <input
                     name="title"
                     defaultValue={editListing.title}
                     required
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block mb-1">Price</label>
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Price</label>
                   <input
                     name="price"
                     defaultValue={editListing.price}
                     required
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block mb-1">Status</label>
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Status</label>
                   <select
                     name="status"
                     defaultValue={editListing.status}
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   >
                     <option>Available</option>
                     <option>Sold</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1">Car Type</label>
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Car Type</label>
                   <select
                     name="car_type"
                     defaultValue={editListing.car_type || ''}
                     required
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   >
                     <option value="">Select Car Type</option>
                     <option>Sedan</option>
@@ -538,12 +538,12 @@ export default function DealerDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1">Fuel Type</label>
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Fuel Type</label>
                   <select
                     name="fuel_type"
                     defaultValue={editListing.fuel_type || ''}
                     required
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   >
                     <option value="">Select Fuel Type</option>
                     <option>Gasoline</option>
@@ -556,12 +556,12 @@ export default function DealerDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1">Transmission</label>
+                  <label className="block mb-1 text-gray-700 dark:text-gray-200">Transmission</label>
                   <select
                     name="transmission"
                     defaultValue={editListing.transmission || ''}
                     required
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   >
                     <option value="">Select Transmission</option>
                     <option value="Automatic">Automatic</option>
@@ -573,40 +573,45 @@ export default function DealerDashboard() {
                 </div>
               </div>
               <div>
-                <label className="block mb-1">Image URL</label>
+                <label className="block mb-1 text-gray-700 dark:text-gray-200">Image URL</label>
                 <input
                   name="imageUrl"
                   type="url"
                   defaultValue=""
                   placeholder={editListing.image}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
               <div>
-                <label className="block mb-1">Or Upload New Image</label>
-                <input name="imageFile" type="file" accept="image/*" className="w-full p-2 border rounded-lg" />
+                <label className="block mb-1 text-gray-700 dark:text-gray-200">Or Upload New Image</label>
+                <input 
+                  name="imageFile" 
+                  type="file" 
+                  accept="image/*" 
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white" 
+                />
               </div>
               <div>
-                <label className="block mb-1">Details (max {MAX_WORDS} words)</label>
+                <label className="block mb-1 text-gray-700 dark:text-gray-200">Details (max {MAX_WORDS} words)</label>
                 <textarea
                   name="details"
                   rows={4}
                   value={editDetails}
                   onChange={handleEditDetailsChange}
                   required
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 />
-                <p className="text-xs mt-1">{countWords(editDetails)}/{MAX_WORDS} words</p>
+                <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">{countWords(editDetails)}/{MAX_WORDS} words</p>
               </div>
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setEditListing(null)}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border rounded-lg text-gray-700 dark:text-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
                   Save Changes
                 </button>
               </div>
